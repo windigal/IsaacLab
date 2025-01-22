@@ -86,6 +86,15 @@ reportMissingModuleSource = "none" # -> most common: prettytable in mdp managers
 reportGeneralTypeIssues = "none"       # -> raises 218 errors (usage of literal MISSING in dataclasses)
 reportOptionalMemberAccess = "warning" # -> raises 8 errors
 reportPrivateUsage = "warning"
+# Add by self
+reportAttributeAccessIssue = "none"
+reportArgumentType = "none"
+reportPrivateImportUsage = "none"
+reportCallIssue = "none"
+reportOperatorIssue = "none"
+reportOptionalSubscript = "none"
+reportAssignmentType = "none"
+reportReturnType = "none"
 
 
 [tool.codespell]

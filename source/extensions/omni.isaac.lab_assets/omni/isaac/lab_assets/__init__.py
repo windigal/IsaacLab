@@ -34,6 +34,7 @@ from .cartpole import *
 from .franka import *
 from .humanoid import *
 from .kinova import *
+from .leju import *
 from .quadcopter import *
 from .ridgeback_franka import *
 from .sawyer import *
