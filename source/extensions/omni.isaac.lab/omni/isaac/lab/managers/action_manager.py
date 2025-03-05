@@ -193,6 +193,8 @@ class ActionManager(ManagerBase):
         # call the base class constructor (this prepares the terms)
         super().__init__(cfg, env)
         # create buffers to store actions
+        self.history_length = 1000
+        self._action_history = torch.zeros((self.num_envs, self.history_length, self.total_action_dim), device=self.device)
         self._action = torch.zeros((self.num_envs, self.total_action_dim), device=self.device)
         self._prev_action = torch.zeros_like(self._action)
 
@@ -251,6 +253,11 @@ class ActionManager(ManagerBase):
         return self._prev_action
 
     @property
+    def action_history(self) -> torch.Tensor:
+        """The previous actions sent to the environment. Shape is (num_envs, hist_length, total_action_dim)."""
+        return self._action_history
+
+    @property
     def has_debug_vis_implementation(self) -> bool:
         """Whether the command terms have debug visualization implemented."""
         # check if function raises NotImplementedError
@@ -307,6 +314,7 @@ class ActionManager(ManagerBase):
         if env_ids is None:
             env_ids = slice(None)
         # reset the action history
+        self._action_history[env_ids] = torch.zeros((self.history_length, self.total_action_dim), device=self.device)
         self._prev_action[env_ids] = 0.0
         self._action[env_ids] = 0.0
         # reset all action terms
@@ -330,7 +338,9 @@ class ActionManager(ManagerBase):
         # store the input actions
         self._prev_action[:] = self._action
         self._action[:] = action.to(self.device)
-
+        if self.history_length > 0:
+            self._action_history[:, 1:] = self._action_history[:, :-1].clone()
+            self._action_history[:, 0] = self._action
         # split the actions and apply to each tensor
         idx = 0
         for term in self._terms.values():

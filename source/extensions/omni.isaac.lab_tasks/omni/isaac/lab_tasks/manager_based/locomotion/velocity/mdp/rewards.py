@@ -61,10 +61,35 @@ def feet_air_time_positive_biped(env, command_name: str, threshold: float, senso
     single_stance = torch.sum(in_contact.int(), dim=1) == 1
     reward = torch.min(torch.where(single_stance.unsqueeze(-1), in_mode_time, 0.0), dim=1)[0]
     reward = torch.clamp(reward, max=threshold)
+    # print(f"{air_time=}")
+    # print(f"{contact_time=}")
+    long_air_time_indices = torch.nonzero(air_time > torch.full_like(air_time, 1.5))
+    long_contact_time_indices = torch.nonzero(contact_time > torch.full_like(contact_time, 1.5))
+    reward[long_air_time_indices[:, 0]] = 0
+    reward[long_contact_time_indices[:, 0]] = 0
     # no reward for zero command
     reward *= torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1) > 0.1
     return reward
 
+def feet_alternate(env, command_name: str, threshold: float, sensor_cfg: SceneEntityCfg) -> torch.Tensor:
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    contact_history = contact_sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids, :].norm(dim=-1)
+    is_contact = contact_history > contact_sensor.cfg.force_threshold
+    contact_ratio = torch.sum(is_contact.float(), dim=1) / is_contact.shape[1]
+    devition = torch.abs(contact_ratio - torch.full_like(contact_ratio, 0.5))
+    reward = torch.where(devition < threshold, torch.zeros_like(devition), devition - threshold)
+    reward = torch.sum(reward, dim=-1)
+    left_leg_action = env.action_manager.action_history[:, :, [10,14]]
+    right_leg_action = env.action_manager.action_history[:, :, [11,15]]
+    devition_2 = torch.where(left_leg_action <= right_leg_action, torch.zeros_like(left_leg_action), torch.ones_like(left_leg_action))
+    devition_2 = torch.sum(devition_2, dim=1) / devition_2.shape[1]
+    # print(f"{devition_2=}")
+    devition_2 = torch.abs(devition_2 - 0.5)
+    reward_2 = torch.where(devition_2 < threshold, torch.zeros_like(devition_2), devition_2 - threshold)
+    reward += torch.sum(reward_2, dim=-1)
+    reward *= torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1) > 0.1
+    reward = torch.where(env.reset_terminated | env.reset_time_outs, reward, torch.zeros_like(reward))
+    return reward
 
 def feet_slide(env, sensor_cfg: SceneEntityCfg, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     """Penalize feet sliding.

@@ -24,9 +24,9 @@ parser.add_argument("--num_envs", type=int, default=32, help="Number of robots t
 parser.add_argument(
     "--robot",
     type=str,
-    choices=["anymal_d", "h1", "g1"],
+    choices=["anymal_d", "h1", "g1", "leju"],
     default="h1",
-    help="Choose which robot to load: anymal_d, h1, or g1.",
+    help="Choose which robot to load: anymal_d, h1, leju, or g1.",
 )
 # append AppLauncher cli args
 AppLauncher.add_app_launcher_args(parser)
@@ -61,7 +61,7 @@ from omni.isaac.lab.utils import configclass
 ##
 # Pre-defined configs
 ##
-from omni.isaac.lab_assets import ANYMAL_D_CFG, G1_MINIMAL_CFG, H1_MINIMAL_CFG  # isort:skip
+from omni.isaac.lab_assets import ANYMAL_D_CFG, G1_MINIMAL_CFG, H1_MINIMAL_CFG, H1_CFG, Bite_s42_CFG  # isort:skip
 
 
 # Stop the timer for imports
@@ -89,6 +89,8 @@ class RobotSceneCfg(InteractiveSceneCfg):
         robot: ArticulationCfg = G1_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
     elif args_cli.robot == "anymal_d":
         robot: ArticulationCfg = ANYMAL_D_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+    elif args_cli.robot == "leju":
+        robot: ArticulationCfg = Bite_s42_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
     else:
         raise ValueError(f"Unsupported robot type: {args_cli.robot}.")
 

@@ -120,6 +120,13 @@ def main():
         with torch.inference_mode():
             # agent stepping
             actions = policy(obs)
+            # print("[DEBUG]===================================")
+            # print(f"First observation:")
+            # print(f"{obs.min()=}, {obs.max()=}, {obs.shape=}, {obs=}")
+            # print(f"First action:")
+            # print(f"{actions.min()=}, {actions.max()=}, {actions.shape=}, {actions=}")
+            # print("===================================")
+            # exit(0)
             # env stepping
             obs, _, _, _ = env.step(actions)
         if args_cli.video:
