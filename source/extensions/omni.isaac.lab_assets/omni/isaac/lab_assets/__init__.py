@@ -35,6 +35,7 @@ from .franka import *
 from .humanoid import *
 from .kinova import *
 from .leju import *
+from .leju_v1 import *
 from .quadcopter import *
 from .ridgeback_franka import *
 from .sawyer import *
