@@ -2,9 +2,9 @@ import omni.isaac.lab.sim as sim_utils
 from omni.isaac.lab.actuators import ImplicitActuatorCfg
 from omni.isaac.lab.assets.articulation import ArticulationCfg
 
-Bite_s42_CFG = ArticulationCfg(
+LejuKuavo42_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
-        usd_path="/root/IsaacLab/models/biped_s42_fine/xml/biped_s42_collision/biped_s42_noworld_mass_singlelayer.usd",
+        usd_path="./models/biped_s42_fine/xml/biped_s42_collision/biped_s42_noworld_mass_singlelayer.usd",
         activate_contact_sensors=True,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=False,
@@ -82,7 +82,7 @@ Bite_s42_CFG = ArticulationCfg(
         },
         joint_vel={".*": 0.0},
     ),
-    soft_joint_pos_limit_factor=0.9,
+    soft_joint_pos_limit_factor=0.4,
     actuators={
         "neck":
         ImplicitActuatorCfg(

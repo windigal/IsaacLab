@@ -61,7 +61,9 @@ from omni.isaac.lab.utils import configclass
 ##
 # Pre-defined configs
 ##
-from omni.isaac.lab_assets import ANYMAL_D_CFG, G1_MINIMAL_CFG, H1_MINIMAL_CFG, H1_CFG, Bite_s42_CFG  # isort:skip
+from omni.isaac.lab_assets import (
+    ANYMAL_D_CFG, G1_MINIMAL_CFG, H1_MINIMAL_CFG, H1_CFG, LejuKuavo42_CFG  # isort:skip
+)
 
 
 # Stop the timer for imports
@@ -90,7 +92,7 @@ class RobotSceneCfg(InteractiveSceneCfg):
     elif args_cli.robot == "anymal_d":
         robot: ArticulationCfg = ANYMAL_D_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
     elif args_cli.robot == "leju":
-        robot: ArticulationCfg = Bite_s42_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+        robot: ArticulationCfg = LejuKuavo42_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
     else:
         raise ValueError(f"Unsupported robot type: {args_cli.robot}.")
 

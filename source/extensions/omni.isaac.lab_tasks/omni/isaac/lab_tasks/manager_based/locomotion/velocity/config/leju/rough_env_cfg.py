@@ -10,13 +10,14 @@ from omni.isaac.lab.utils import configclass
 import omni.isaac.lab_tasks.manager_based.locomotion.velocity.mdp as mdp
 from omni.isaac.lab_tasks.manager_based.locomotion.velocity.velocity_env_cfg_leju import (
     LocomotionVelocityRoughEnvCfg,
+    LocomotionVelocityHighFreqRoughEnvCfg,
     RewardsCfg,
 )
 
 ##
 # Pre-defined configs
 ##
-from omni.isaac.lab_assets import Bite_s42_CFG  # isort: skip
+from omni.isaac.lab_assets import LejuKuavo42_CFG, LejuKuavo42_V1_CFG  # isort: skip
 
 
 @configclass
@@ -80,13 +81,14 @@ class LejuRewards(RewardsCfg):
 
 @configclass
 class LejuRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+    """ Leju v0 """
     rewards: LejuRewards = LejuRewards()
 
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
         # Scene
-        self.scene.robot = Bite_s42_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+        self.scene.robot = LejuKuavo42_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         if self.scene.height_scanner:
             self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/base_link"
 
@@ -125,6 +127,53 @@ class LejuRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # terminations
         # self.terminations.base_contact.params["sensor_cfg"].body_names = "base_link"
 
+@configclass
+class LejuV1RoughEnvCfg(LocomotionVelocityHighFreqRoughEnvCfg):
+    """ Leju v1: Remove two head joitns and low pd control for the legs and arms. """
+    rewards: LejuRewards = LejuRewards()
+
+    def __post_init__(self):
+        # post init of parent
+        super().__post_init__()
+        # Scene
+        self.scene.robot = LejuKuavo42_V1_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+        if self.scene.height_scanner:
+            self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/base_link"
+
+        # Randomization
+        self.events.push_robot = None
+        self.events.add_base_mass = None
+        self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
+        self.events.base_external_force_torque.params["asset_cfg"].body_names = ["base_link"]
+        self.events.reset_base.params = {
+            "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-3.14, 3.14)},
+            "velocity_range": {
+                "x": (0.0, 0.0),
+                "y": (0.0, 0.0),
+                "z": (0.0, 0.0),
+                "roll": (0.0, 0.0),
+                "pitch": (0.0, 0.0),
+                "yaw": (0.0, 0.0),
+            },
+        }
+
+        # Terminations
+        # self.terminations.base_contact.params["sensor_cfg"].body_names = ["base_link"]
+
+        # Rewards
+        self.rewards.undesired_contacts = None
+        self.rewards.flat_orientation_l2.weight = -1.0
+        self.rewards.dof_torques_l2.weight = 0.0
+        self.rewards.action_rate_l2.weight = -0.005
+        self.rewards.dof_acc_l2.weight = -1.25e-7
+
+        # Commands
+        self.commands.base_velocity.ranges.lin_vel_x = (0.0, 1.0)
+        self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
+        self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
+
+        # terminations
+        # self.terminations.base_contact.params["sensor_cfg"].body_names = "base_link"
 
 @configclass
 class LejuRoughEnvCfg_PLAY(LejuRoughEnvCfg):
