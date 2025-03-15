@@ -23,3 +23,18 @@ Check joint_names: `source/extensions/omni.isaac.lab/omni/isaac/lab/envs/mdp/obs
 - train: `python ./source/standalone/workflows/rsl_rl/train.py --task Isaac-Velocity-Flat-leju-v1 --headless`
 - evaluate: `python ./source/standalone/workflows/rsl_rl/play.py --task Isaac-Velocity-Flat-leju-v1 --num_envs 1`
 - tensorboard: `tensorboard --logdir=logs\rsl_rl\leju_flat\{timestamp}`
+
+# Update Infos
+- 2025.3.7.
+    - Fix Leju Kuavo42 V1 error `feet_alternate` reward function left and right feets indexs
+    - Add a punishment for `long_air_time_indices` and `long_contact_time_indices` in `feet_air_time_positive_biped` reward function
+    - Add a reward class `LejuV1Rewards` for Leju Kuavo42 V1
+    - Change `leg_l4_joint` and `leg_r4_joint` upper limit from 150 to 90 degrees
+
+- 2025.3.8.
+    - Decrease the punishment for `long_air_time_indices` and `long_contact_time_indices` in `feet_air_time_positive_biped` reward function
+    - Change `leg_l3_joint` and `leg_r3_joint` upper limit from -60 to 60 degrees
+
+- 2025.3.14.
+    - Add leju-V2 for IsaacSim, which prohibit the move of arm joints.
+    - Merge different versions of Leju cfg into the same `leju.py` file

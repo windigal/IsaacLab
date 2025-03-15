@@ -17,7 +17,7 @@ from omni.isaac.lab_tasks.manager_based.locomotion.velocity.velocity_env_cfg_lej
 ##
 # Pre-defined configs
 ##
-from omni.isaac.lab_assets import LejuKuavo42_CFG, LejuKuavo42_V1_CFG  # isort: skip
+from omni.isaac.lab_assets import LejuKuavo42_CFG, LejuKuavo42_V1_CFG, LejuKuavo42_V2_CFG  # isort: skip
 
 
 @configclass
@@ -50,6 +50,7 @@ class LejuRewards(RewardsCfg):
             "command_name": "base_velocity",
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["leg_l6_link", "leg_r6_link"]),
             "threshold": 0.15,
+            "has_head": True,
         },
     )
     feet_slide = RewTerm(
@@ -77,6 +78,19 @@ class LejuRewards(RewardsCfg):
     )
     base_height_l2 = RewTerm(func=mdp.base_height_l2, weight=-1.2,
         params={"target_height": 0.85})
+
+@configclass
+class LejuV1Rewards(LejuRewards):
+    feet_alternate = RewTerm(
+        func=mdp.feet_alternate,
+        weight=-1e2,
+        params={
+            "command_name": "base_velocity",
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["leg_l6_link", "leg_r6_link"]),
+            "threshold": 0.15,
+            "version": "v1",
+        },
+    )
 
 
 @configclass
@@ -129,8 +143,8 @@ class LejuRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
 @configclass
 class LejuV1RoughEnvCfg(LocomotionVelocityHighFreqRoughEnvCfg):
-    """ Leju v1: Remove two head joitns and low pd control for the legs and arms. """
-    rewards: LejuRewards = LejuRewards()
+    """ Leju v1: Remove two head joints and low pd control for the legs and arms. """
+    rewards: LejuRewards = LejuV1Rewards()
 
     def __post_init__(self):
         # post init of parent
@@ -202,3 +216,65 @@ class LejuRoughEnvCfg_PLAY(LejuRoughEnvCfg):
         # remove random pushing
         self.events.base_external_force_torque = None
         self.events.push_robot = None
+
+@configclass
+class LejuV2Rewards(LejuRewards):
+    feet_alternate = RewTerm(
+        func=mdp.feet_alternate,
+        weight=-1e2,
+        params={
+            "command_name": "base_velocity",
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["leg_l6_link", "leg_r6_link"]),
+            "threshold": 0.15,
+            "version": "v2",
+        },
+    )
+    joint_deviation_arms = None
+  
+@configclass
+class LejuV2RoughEnvCfg(LejuV1RoughEnvCfg):
+    """ Leju v2: Remove arm joints."""
+    rewards: LejuRewards = LejuV2Rewards()
+    def __post_init__(self):
+        # post init of parent
+        super().__post_init__()
+        # Scene
+        self.scene.robot = LejuKuavo42_V2_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+        if self.scene.height_scanner:
+            self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/base_link"
+
+        # Randomization
+        self.events.push_robot = None
+        self.events.add_base_mass = None
+        self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
+        self.events.base_external_force_torque.params["asset_cfg"].body_names = ["base_link"]
+        self.events.reset_base.params = {
+            "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-3.14, 3.14)},
+            "velocity_range": {
+                "x": (0.0, 0.0),
+                "y": (0.0, 0.0),
+                "z": (0.0, 0.0),
+                "roll": (0.0, 0.0),
+                "pitch": (0.0, 0.0),
+                "yaw": (0.0, 0.0),
+            },
+        }
+
+        # Terminations
+        # self.terminations.base_contact.params["sensor_cfg"].body_names = ["base_link"]
+
+        # Rewards
+        self.rewards.undesired_contacts = None
+        self.rewards.flat_orientation_l2.weight = -1.0
+        self.rewards.dof_torques_l2.weight = 0.0
+        self.rewards.action_rate_l2.weight = -0.005
+        self.rewards.dof_acc_l2.weight = -1.25e-7
+
+        # Commands
+        self.commands.base_velocity.ranges.lin_vel_x = (0.0, 1.0)
+        self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
+        self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
+
+        # terminations
+        # self.terminations.base_contact.params["sensor_cfg"].body_names = "base_link"
+

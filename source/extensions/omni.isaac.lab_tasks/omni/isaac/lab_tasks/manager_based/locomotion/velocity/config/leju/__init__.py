@@ -56,6 +56,17 @@ gym.register(
 
 
 gym.register(
+    id="Isaac-Velocity-Flat-leju-v2",
+    entry_point="omni.isaac.lab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.flat_env_cfg:LejuV2FlatEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:LejuFlatPPORunnerCfg",
+    },
+)
+
+
+gym.register(
     id="Isaac-Velocity-Flat-Leju-Play-v0",
     entry_point="omni.isaac.lab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
