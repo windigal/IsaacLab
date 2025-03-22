@@ -20,8 +20,8 @@ Check joint_names: `source/extensions/omni.isaac.lab/omni/isaac/lab/envs/mdp/obs
 
 ## Commands
 - checkout config: `python e:/IsaacLab/source/standalone/benchmarks/benchmark_load_robot.py --robot leju`
-- train: `python ./source/standalone/workflows/rsl_rl/train.py --task Isaac-Velocity-Flat-leju-v1 --headless`
-- evaluate: `python ./source/standalone/workflows/rsl_rl/play.py --task Isaac-Velocity-Flat-leju-v1 --num_envs 1`
+- train: `python ./source/standalone/workflows/rsl_rl/train.py --task Isaac-Velocity-Flat-leju-v2 --headless`
+- evaluate: `python ./source/standalone/workflows/rsl_rl/play.py --task Isaac-Velocity-Flat-leju-v2 --num_envs 1`
 - tensorboard: `tensorboard --logdir=logs\rsl_rl\leju_flat\{timestamp}`
 
 # Update Infos

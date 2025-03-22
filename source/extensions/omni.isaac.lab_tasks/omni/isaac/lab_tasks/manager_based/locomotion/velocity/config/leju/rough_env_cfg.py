@@ -24,7 +24,7 @@ from omni.isaac.lab_assets import LejuKuavo42_CFG, LejuKuavo42_V1_CFG, LejuKuavo
 class LejuRewards(RewardsCfg):
     """Reward terms for the MDP."""
 
-    termination_penalty = RewTerm(func=mdp.is_terminated, weight=-200.0)
+    termination_penalty = RewTerm(func=mdp.is_terminated, weight=-1000.0)
     lin_vel_z_l2 = None
     track_lin_vel_xy_exp = RewTerm(
         func=mdp.track_lin_vel_xy_yaw_frame_exp,
@@ -177,7 +177,6 @@ class LejuV1RoughEnvCfg(LocomotionVelocityHighFreqRoughEnvCfg):
         # Rewards
         self.rewards.undesired_contacts = None
         self.rewards.flat_orientation_l2.weight = -1.0
-        self.rewards.dof_torques_l2.weight = 0.0
         self.rewards.action_rate_l2.weight = -0.005
         self.rewards.dof_acc_l2.weight = -1.25e-7
 
@@ -219,17 +218,33 @@ class LejuRoughEnvCfg_PLAY(LejuRoughEnvCfg):
 
 @configclass
 class LejuV2Rewards(LejuRewards):
-    feet_alternate = RewTerm(
-        func=mdp.feet_alternate,
-        weight=-1e2,
+    feet_alternate = None
+    feet_air_time = None
+    dof_pos_limits = None
+    dof_torques_l2 = None
+    joint_deviation_arms = None
+    joint_pos_limits_legs = None
+    joint_pos_ref_dif = RewTerm(
+        func = mdp.joint_pos_ref_dif,
+        weight = 2.0,
+        params={"cycle_steps":120,
+                "command_name": "base_velocity",
+        }
+    )
+    feet_air_time_leju = RewTerm(
+        func = mdp.feet_air_time_leju,
+        weight = 1.0,
         params={
             "command_name": "base_velocity",
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["leg_l6_link", "leg_r6_link"]),
-            "threshold": 0.15,
-            "version": "v2",
+            "threshold": 0.6,
+            "cycle_steps":120,
         },
     )
-    joint_deviation_arms = None
+    default_joint_pos = RewTerm(
+        func = mdp.default_joint_pos,
+        weight = 0.5, 
+    )
   
 @configclass
 class LejuV2RoughEnvCfg(LejuV1RoughEnvCfg):
@@ -266,7 +281,6 @@ class LejuV2RoughEnvCfg(LejuV1RoughEnvCfg):
         # Rewards
         self.rewards.undesired_contacts = None
         self.rewards.flat_orientation_l2.weight = -1.0
-        self.rewards.dof_torques_l2.weight = 0.0
         self.rewards.action_rate_l2.weight = -0.005
         self.rewards.dof_acc_l2.weight = -1.25e-7
 

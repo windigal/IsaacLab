@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import torch
 from typing import TYPE_CHECKING
-
+from .utils import interpolation, trun_sin
 from omni.isaac.lab.managers import SceneEntityCfg
 from omni.isaac.lab.sensors import ContactSensor
 from omni.isaac.lab.utils.math import quat_rotate_inverse, yaw_quat
@@ -141,3 +141,66 @@ def track_ang_vel_z_world_exp(
         env.command_manager.get_command(command_name)[:, 2] - asset.data.root_com_ang_vel_w[:, 2]
     )
     return torch.exp(-ang_vel_error / std**2)
+
+
+# rewards from humanoidgym
+def joint_pos_ref_dif(env: ManagerBasedRLEnv, cycle_steps: float, command_name: str, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")):
+    def _compute_ref_state(env, cycle_steps: float, command_name: str) -> torch.Tensor:
+        command_vel = torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1).cpu()
+        phase = env.episode_length_buf / cycle_steps
+        # left foot stance phase set to default joint pos, l3, l5, l6
+        ref_dof_pos = torch.zeros(env.scene.num_envs, sum(env.action_manager.action_term_dim), device = env.device)
+        ref_dof_pos[:, 4] = trun_sin(2 * torch.pi * phase, interpolation['min'][0](command_vel), interpolation['max'][0](command_vel))
+        ref_dof_pos[:, 6] = trun_sin(2 * torch.pi * phase, interpolation['min'][1](command_vel), interpolation['max'][1](command_vel))
+        ref_dof_pos[:, 8] = trun_sin(2 * torch.pi * phase, interpolation['min'][2](command_vel), interpolation['max'][2](command_vel))
+        # right foot stance phase set to default joint pos, r3, r5, r6
+        ref_dof_pos[:, 5] = trun_sin(2 * torch.pi * (phase - 1/2), interpolation['min'][0](command_vel), interpolation['max'][0](command_vel))
+        ref_dof_pos[:, 7] = trun_sin(2 * torch.pi * (phase - 1/2), interpolation['min'][1](command_vel), interpolation['max'][1](command_vel))
+        ref_dof_pos[:, 9] = trun_sin(2 * torch.pi * (phase - 1/2), interpolation['min'][2](command_vel), interpolation['max'][2](command_vel))
+        return ref_dof_pos
+    
+    ref_dof_pos = _compute_ref_state(env, cycle_steps, command_name)
+    asset = env.scene[asset_cfg.name]
+    diff = asset.data.joint_pos[:, asset_cfg.joint_ids] - ref_dof_pos
+    rew = torch.exp(-2 * torch.norm(diff, dim=1)) - 0.2 * torch.norm(diff, dim=1).clamp(0, 0.5)
+    return rew
+
+def feet_air_time_leju(env, command_name: str, threshold: float, sensor_cfg: SceneEntityCfg, cycle_steps: float):
+    def _get_gait_phase(env, cycle_steps: float) -> torch.Tensor:
+        phase = env.episode_length_buf / cycle_steps
+        sin_pos = torch.sin(2 * torch.pi * phase)
+        stance_mask = torch.zeros(env.scene.num_envs, 2, device=env.device)
+        stance_mask[:, 0] = sin_pos >= 0
+        stance_mask[:, 1] = sin_pos < 0
+        stance_mask[torch.abs(sin_pos) < 0.1] = 1
+
+        return stance_mask
+
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    air_time = contact_sensor.data.current_air_time[:, sensor_cfg.body_ids]
+    contact_time = contact_sensor.data.current_contact_time[:, sensor_cfg.body_ids]
+    in_contact = contact_time > 0.0
+    stance_mask = _get_gait_phase(env, cycle_steps)
+    contact_flit = torch.all(torch.eq(in_contact, stance_mask), dim=1).int()
+    in_mode_time = torch.where(in_contact, contact_time, air_time)
+    single_stance = torch.sum(in_contact.int(), dim=1) == 1
+    fit_state = torch.logical_and(single_stance, contact_flit)
+    reward = torch.min(torch.where(fit_state.unsqueeze(-1), in_mode_time, 0.0), dim=1)[0]
+    reward = torch.clamp(reward, max=threshold)
+    long_air_time_indices = torch.nonzero(air_time > torch.full_like(air_time, 1.0))
+    long_contact_time_indices = torch.nonzero(contact_time > torch.full_like(contact_time, 1.0))
+    reward[long_air_time_indices[:, 0]] = 0
+    reward[long_contact_time_indices[:, 0]] = 0
+    # no reward for zero command
+    reward *= torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1) > 0.1
+    return reward
+
+def default_joint_pos(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")):
+    asset = env.scene[asset_cfg.name]
+    joint_pos = asset.data.joint_pos[:, asset_cfg.joint_ids]
+    joint_diff =  joint_pos - torch.zeros_like(joint_pos)
+    left_yaw_roll = joint_diff[:, [0,2]]
+    right_yaw_roll = joint_diff[:, [1,3]]
+    yaw_roll = torch.norm(left_yaw_roll, dim=1) + torch.norm(right_yaw_roll, dim=1)
+    yaw_roll = torch.clamp(yaw_roll - 0.1, 0, 50)
+    return torch.exp(-yaw_roll * 100) - 0.01 * torch.norm(joint_diff, dim=1)

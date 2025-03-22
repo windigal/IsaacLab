@@ -322,17 +322,17 @@ LejuKuavo42_V2_CFG = ArticulationCfg(
             effort_limit=80,
             velocity_limit=100.0,
             stiffness={
-                "leg_l1_joint": 120.0,
-                "leg_l2_joint": 120.0,
-                "leg_l3_joint": 120.0,
-                "leg_l4_joint": 120.0,
-                "leg_r1_joint": 120.0,
-                "leg_r2_joint": 120.0,
-                "leg_r3_joint": 120.0,
-                "leg_r4_joint": 120.0,
+                "leg_l1_joint": 60.0, # 120.0
+                "leg_l2_joint": 60.0,
+                "leg_l3_joint": 60.0,
+                "leg_l4_joint": 60.0,
+                "leg_r1_joint": 60.0,
+                "leg_r2_joint": 60.0,
+                "leg_r3_joint": 60.0,
+                "leg_r4_joint": 60.0,
             },
             damping={
-                "leg_l1_joint": 10.0,
+                "leg_l1_joint": 34.0, # 10.0
                 "leg_l2_joint": 6.0,
                 "leg_l3_joint": 12.0,
                 "leg_l4_joint": 12.0,
@@ -348,10 +348,10 @@ LejuKuavo42_V2_CFG = ArticulationCfg(
             effort_limit=60,
             velocity_limit=100.0,
             stiffness={
-                "leg_l5_joint": 30.0,
-                "leg_l6_joint": 30.0,
-                "leg_r5_joint": 30.0,
-                "leg_r6_joint": 30.0,
+                "leg_l5_joint": 15.0, # 30.0
+                "leg_l6_joint": 15.0,
+                "leg_r5_joint": 15.0,
+                "leg_r6_joint": 15.0,
             },
             damping={
                 "leg_l5_joint": 22.0,
