@@ -1,77 +1,46 @@
-![Isaac Lab](docs/source/_static/isaaclab.jpg)
+# Leju Kuavo42 IsaacSim Notes
+## Model
+- Usd file: `E:/isaacsim/models/biped_s42_fine/xml/biped_s42_collision/biped_s42_noworld_mass_singlelayer_fixed_head.usd`
+- Robot config file: `source/extensions/omni.isaac.lab_assets/omni/isaac/lab_assets/leju.py`
+- Rough env config file: `source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/manager_based/locomotion/velocity/config/leju/rough_env_cfg.py`
+- Env Config file (e.x.: inference Hz): `source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/manager_based/locomotion/velocity/velocity_env_cfg_leju.py`
+- PPO config file: `source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/manager_based/locomotion/velocity/config/leju/agents/rsl_rl_ppo_cfg.py`
+- Register a new environment:
+1. Add a new file and new `ArticulationCfg` name, for example: `source/extensions/omni.isaac.lab_assets/omni/isaac/lab_assets/leju_v1.py`
+2. Add a new Rough env config: `source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/manager_based/locomotion/velocity/config/leju/rough_env_cfg.py`
+3. (Optional) Update Env class: `source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/manager_based/locomotion/velocity/velocity_env_cfg_leju.py`
+4. Add flat env config: `source\extensions\omni.isaac.lab_tasks\omni\isaac\lab_tasks\manager_based\locomotion\velocity\config\leju\flat_env_cfg.py`
+5. Add your rough env name to `gym.register`: `source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/manager_based/locomotion/velocity/config/leju/__init__.py`
 
----
+## Actions
+Add action func: `source/extensions/omni.isaac.lab/omni/isaac/lab/managers/action_manager.py`
 
-# Isaac Lab
+## Observations
+Check joint_names: `source/extensions/omni.isaac.lab/omni/isaac/lab/envs/mdp/observations.py:121 line`
 
-[![IsaacSim](https://img.shields.io/badge/IsaacSim-4.2.0-silver.svg)](https://docs.omniverse.nvidia.com/isaacsim/latest/overview.html)
-[![Python](https://img.shields.io/badge/python-3.10-blue.svg)](https://docs.python.org/3/whatsnew/3.10.html)
-[![Linux platform](https://img.shields.io/badge/platform-linux--64-orange.svg)](https://releases.ubuntu.com/20.04/)
-[![Windows platform](https://img.shields.io/badge/platform-windows--64-orange.svg)](https://www.microsoft.com/en-us/)
-[![pre-commit](https://img.shields.io/github/actions/workflow/status/isaac-sim/IsaacLab/pre-commit.yaml?logo=pre-commit&logoColor=white&label=pre-commit&color=brightgreen)](https://github.com/isaac-sim/IsaacLab/actions/workflows/pre-commit.yaml)
-[![docs status](https://img.shields.io/github/actions/workflow/status/isaac-sim/IsaacLab/docs.yaml?label=docs&color=brightgreen)](https://github.com/isaac-sim/IsaacLab/actions/workflows/docs.yaml)
-[![License](https://img.shields.io/badge/license-BSD--3-yellow.svg)](https://opensource.org/licenses/BSD-3-Clause)
+## Commands
+- checkout config: `python e:/IsaacLab/source/standalone/benchmarks/benchmark_load_robot.py --robot leju`
+- train: `python ./source/standalone/workflows/rsl_rl/train.py --task Isaac-Velocity-Flat-leju-v2 --headless`
+- evaluate: `python ./source/standalone/workflows/rsl_rl/play.py --task Isaac-Velocity-Flat-leju-v2 --num_envs 1`
+- tensorboard: `tensorboard --logdir=logs\rsl_rl\leju_flat\{timestamp}`
 
+# Update Infos
+- 2025.3.7.
+    - Fix Leju Kuavo42 V1 error `feet_alternate` reward function left and right feets indexs
+    - Add a punishment for `long_air_time_indices` and `long_contact_time_indices` in `feet_air_time_positive_biped` reward function
+    - Add a reward class `LejuV1Rewards` for Leju Kuavo42 V1
+    - Change `leg_l4_joint` and `leg_r4_joint` upper limit from 150 to 90 degrees
 
-**Isaac Lab** is a GPU-accelerated, open-source framework designed to unify and simplify robotics research workflows, such as reinforcement learning, imitation learning, and motion planning. Built on [NVIDIA Isaac Sim](https://docs.omniverse.nvidia.com/isaacsim/latest/overview.html), it combines fast and accurate physics and sensor simulation, making it an ideal choice for sim-to-real transfer in robotics.
+- 2025.3.8.
+    - Decrease the punishment for `long_air_time_indices` and `long_contact_time_indices` in `feet_air_time_positive_biped` reward function
+    - Change `leg_l3_joint` and `leg_r3_joint` upper limit from -60 to 60 degrees
 
-Isaac Lab provides developers with a range of essential features for accurate sensor simulation, such as RTX-based cameras, LIDAR, or contact sensors. The framework's GPU acceleration enables users to run complex simulations and computations faster, which is key for iterative processes like reinforcement learning and data-intensive tasks. Moreover, Isaac Lab can run locally or be distributed across the cloud, offering flexibility for large-scale deployments.
+- 2025.3.14.
+    - Add leju-V2 for IsaacSim, which prohibit the move of arm joints.
+    - Merge different versions of Leju cfg into the same `leju.py` file
 
-## Key Features
-
-Isaac Lab offers a comprehensive set of tools and environments designed to facilitate robot learning:
-- **Robots**: A diverse collection of robots, from manipulators, quadrupeds, to humanoids, with 16 commonly available models.
-- **Environments**: Ready-to-train implementations of more than 30 environments, which can be trained with popular reinforcement learning frameworks such as RSL RL, SKRL, RL Games, or Stable Baselines. We also support multi-agent reinforcement learning.
-- **Physics**: Rigid bodies, articulated systems, deformable objects
-- **Sensors**: RGB/depth/segmentation cameras, camera annotations, IMU, contact sensors, ray casters.
-
-
-## Getting Started
-
-Our [documentation page](https://isaac-sim.github.io/IsaacLab) provides everything you need to get started, including detailed tutorials and step-by-step guides. Follow these links to learn more about:
-
-- [Installation steps](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/index.html#local-installation)
-- [Reinforcement learning](https://isaac-sim.github.io/IsaacLab/main/source/overview/reinforcement-learning/rl_existing_scripts.html)
-- [Tutorials](https://isaac-sim.github.io/IsaacLab/main/source/tutorials/index.html)
-- [Available environments](https://isaac-sim.github.io/IsaacLab/main/source/overview/environments.html)
-
-
-## Contributing to Isaac Lab
-
-We wholeheartedly welcome contributions from the community to make this framework mature and useful for everyone.
-These may happen as bug reports, feature requests, or code contributions. For details, please check our
-[contribution guidelines](https://isaac-sim.github.io/IsaacLab/main/source/refs/contributing.html).
-
-## Troubleshooting
-
-Please see the [troubleshooting](https://isaac-sim.github.io/IsaacLab/main/source/refs/troubleshooting.html) section for
-common fixes or [submit an issue](https://github.com/isaac-sim/IsaacLab/issues).
-
-For issues related to Isaac Sim, we recommend checking its [documentation](https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/overview.html)
-or opening a question on its [forums](https://forums.developer.nvidia.com/c/agx-autonomous-machines/isaac/67).
-
-## Support
-
-* Please use GitHub [Discussions](https://github.com/isaac-sim/IsaacLab/discussions) for discussing ideas, asking questions, and requests for new features.
-* Github [Issues](https://github.com/isaac-sim/IsaacLab/issues) should only be used to track executable pieces of work with a definite scope and a clear deliverable. These can be fixing bugs, documentation issues, new features, or general updates.
-
-## License
-
-The Isaac Lab framework is released under [BSD-3 License](LICENSE). The license files of its dependencies and assets are present in the [`docs/licenses`](docs/licenses) directory.
-
-## Acknowledgement
-
-Isaac Lab development initiated from the [Orbit](https://isaac-orbit.github.io/) framework. We would appreciate if you would cite it in academic publications as well:
-
-```
-@article{mittal2023orbit,
-   author={Mittal, Mayank and Yu, Calvin and Yu, Qinxi and Liu, Jingzhou and Rudin, Nikita and Hoeller, David and Yuan, Jia Lin and Singh, Ritvik and Guo, Yunrong and Mazhar, Hammad and Mandlekar, Ajay and Babich, Buck and State, Gavriel and Hutter, Marco and Garg, Animesh},
-   journal={IEEE Robotics and Automation Letters},
-   title={Orbit: A Unified Simulation Framework for Interactive Robot Learning Environments},
-   year={2023},
-   volume={8},
-   number={6},
-   pages={3740-3747},
-   doi={10.1109/LRA.2023.3270034}
-}
-```
+- 2025.3.21.
+    - Add ref joint pos and the reward.
+    - Remove the feet alternate reward, update the feed air time reward
+    - Change some PPO cfgs
+    - Lightweight the repo for leju training
