@@ -164,6 +164,9 @@ class CommandTerm(ManagerTermBase):
             self._resample(resample_env_ids)
         # update the command
         self._update_command()
+        
+    def change(self, command: torch.Tensor):
+        self._change(command)
 
     """
     Helper functions.
@@ -203,6 +206,11 @@ class CommandTerm(ManagerTermBase):
     @abstractmethod
     def _update_command(self):
         """Update the command based on the current state."""
+        raise NotImplementedError
+    
+    @abstractmethod
+    def _change(self, command: torch.Tensor):
+        """Change the command to the specified value."""
         raise NotImplementedError
 
     def _set_debug_vis_impl(self, debug_vis: bool):
@@ -392,6 +400,17 @@ class CommandManager(ManagerBase):
             The command term with the specified name.
         """
         return self._terms[name]
+    
+    def change_command(self, name: str, command: torch.Tensor):
+        """Change the command term with the specified name.
+
+        Args:
+            name: The name of the command term.
+
+        Returns:
+            The command term with the specified name.
+        """
+        self._terms[name].change(command)
 
     """
     Helper functions.

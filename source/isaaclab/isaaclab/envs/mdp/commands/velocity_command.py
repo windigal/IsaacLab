@@ -102,6 +102,9 @@ class UniformVelocityCommand(CommandTerm):
     @property
     def command(self) -> torch.Tensor:
         """The desired base velocity command in the base frame. Shape is (num_envs, 3)."""
+        # import traceback
+        # traceback.print_stack()
+        # print(self.vel_command_b)
         return self.vel_command_b
 
     """
@@ -159,6 +162,10 @@ class UniformVelocityCommand(CommandTerm):
         standing_env_ids = self.is_standing_env.nonzero(as_tuple=False).flatten()
         self.vel_command_b[standing_env_ids, :] = 0.0
 
+    def _change(self, command: torch.Tensor):
+        # update the command
+        self.vel_command_b[:] = command
+        
     def _set_debug_vis_impl(self, debug_vis: bool):
         # set visibility of markers
         # note: parent only deals with callbacks. not their visibility

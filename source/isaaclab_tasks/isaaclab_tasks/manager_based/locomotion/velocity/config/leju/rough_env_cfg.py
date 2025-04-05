@@ -9,7 +9,6 @@ from isaaclab.utils import configclass
 
 import isaaclab_tasks.manager_based.locomotion.velocity.mdp as mdp
 from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg_leju import (
-    LocomotionVelocityRoughEnvCfg,
     LocomotionVelocityHighFreqRoughEnvCfg,
     RewardsCfg,
 )
@@ -28,51 +27,7 @@ from isaaclab_assets import LejuKuavo42_CFG, LejuKuavo42_V1_CFG, LejuKuavo42_V2_
 @configclass
 class LejuRewards(RewardsCfg):
     """Reward terms for the MDP."""
-
-    termination_penalty = RewTerm(func=mdp.is_terminated, weight=-1000.0)
-    lin_vel_z_l2 = None
-    track_lin_vel_xy_exp = RewTerm(
-        func=mdp.track_lin_vel_xy_yaw_frame_exp,
-        weight=1.0,
-        params={"command_name": "base_velocity", "std": 0.5},
-    )
-    track_ang_vel_z_exp = RewTerm(
-        func=mdp.track_ang_vel_z_world_exp, weight=1.0, params={"command_name": "base_velocity", "std": 0.5}
-    )
-    feet_air_time = RewTerm(
-        func=mdp.feet_air_time_positive_biped,
-        weight=0.125,
-        params={
-            "command_name": "base_velocity",
-            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["leg_l6_link", "leg_r6_link"]),
-            "threshold": 0.35,
-        },
-    )
-    feet_slide = RewTerm(
-        func=mdp.feet_slide,
-        weight=-0.25,
-        params={
-            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["leg_l6_link", "leg_r6_link"]),
-            "asset_cfg": SceneEntityCfg("robot", body_names=["leg_l6_link", "leg_r6_link"]),
-        },
-    )
-    # Penalize ankle joint limits
-    dof_pos_limits = RewTerm(
-        func=mdp.joint_pos_limits, weight=-1.0, params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*"])}
-    )
-    # Penalize deviation from default of the joints that are not essential for locomotion
-    joint_pos_limits_legs = RewTerm(
-        func=mdp.joint_pos_limits,
-        weight=-0.1,
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=["leg_.*"])},
-    )
-    joint_deviation_arms = RewTerm(
-        func=mdp.joint_deviation_l1,
-        weight=-0.2,
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=["zarm_.*"])},
-    )
-    base_height_l2 = RewTerm(func=mdp.base_height_l2, weight=-1.2,
-        params={"target_height": 0.85})
+    feet_alternate = None
 
 @configclass
 class LejuV1Rewards(LejuRewards):
@@ -80,7 +35,7 @@ class LejuV1Rewards(LejuRewards):
 
 
 @configclass
-class LejuRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+class LejuRoughEnvCfg(LocomotionVelocityHighFreqRoughEnvCfg):
     """ Leju v0 """
     rewards: LejuRewards = LejuRewards()
 
@@ -109,23 +64,6 @@ class LejuRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
             },
         }
 
-        # Terminations
-        # self.terminations.base_contact.params["sensor_cfg"].body_names = ["base_link"]
-
-        # Rewards
-        self.rewards.undesired_contacts = None
-        self.rewards.flat_orientation_l2.weight = -1.0
-        self.rewards.dof_torques_l2.weight = 0.0
-        self.rewards.action_rate_l2.weight = -0.005
-        self.rewards.dof_acc_l2.weight = -1.25e-7
-
-        # Commands
-        self.commands.base_velocity.ranges.lin_vel_x = (0.0, 1.0)
-        self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
-        self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
-
-        # terminations
-        # self.terminations.base_contact.params["sensor_cfg"].body_names = "base_link"
 
 @configclass
 class LejuV1RoughEnvCfg(LocomotionVelocityHighFreqRoughEnvCfg):
@@ -157,22 +95,6 @@ class LejuV1RoughEnvCfg(LocomotionVelocityHighFreqRoughEnvCfg):
             },
         }
 
-        # Terminations
-        # self.terminations.base_contact.params["sensor_cfg"].body_names = ["base_link"]
-
-        # Rewards
-        # self.rewards.undesired_contacts = None
-        # self.rewards.flat_orientation_l2.weight = -1.0
-        # self.rewards.action_rate_l2.weight = -0.005
-        # self.rewards.dof_acc_l2.weight = -1.25e-7
-
-        # Commands
-        self.commands.base_velocity.ranges.lin_vel_x = (0.0, 1.0)
-        self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
-        self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
-
-        # terminations
-        # self.terminations.base_contact.params["sensor_cfg"].body_names = "base_link"
 
 @configclass
 class LejuRoughEnvCfg_PLAY(LejuRoughEnvCfg):
@@ -381,6 +303,9 @@ class LejuV2RoughEnvCfg(LejuV1RoughEnvCfg):
             },
         }
         # Commands
+        # self.commands.base_velocity.ranges.lin_vel_x = (0.0, 1.0)
+        # self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
+        # self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
         self.commands.base_velocity.ranges.lin_vel_x = (0.0, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
         self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)

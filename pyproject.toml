@@ -95,7 +95,9 @@ reportCallIssue = "none"
 reportAssignmentType = "none"
 reportOptionalSubscript = "none"
 reportOperatorIssue = "none"
-
+reportReturnType = "none"
+reportOptionalIterable = "none"
+reportIndexIssue = "none"
 
 [tool.codespell]
 skip = '*.usd,*.svg,*.png,_isaac_sim*,*.bib,*.css,*/_build'

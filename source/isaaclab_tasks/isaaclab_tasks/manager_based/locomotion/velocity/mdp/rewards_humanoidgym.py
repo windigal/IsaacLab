@@ -88,8 +88,8 @@ def joint_pos(env: ManagerBasedRLEnv,
     diff = asset.data.joint_pos[:, asset_cfg.joint_ids] - ref_dof_pos
     # 计算奖励
     rew = torch.exp(-2 * torch.norm(diff, dim=1)) - 0.2 * torch.norm(diff, dim=1).clamp(0, 0.5)
-    env.dof_pos_buf[env.episode_length_buf] = asset.data.joint_pos[0, [4,6,8,5,7,9]]
-    env.ref_dof_pos_buf[env.episode_length_buf] = ref_dof_pos[0, [4,6,8,5,7,9]]
+    # env.dof_pos_buf[env.episode_length_buf] = asset.data.joint_pos[0, [4,6,8,5,7,9]]
+    # env.ref_dof_pos_buf[env.episode_length_buf] = ref_dof_pos[0, [4,6,8,5,7,9]]
     return rew
 
 
