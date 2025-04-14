@@ -16,24 +16,34 @@ from isaaclab.assets import Articulation, RigidObject
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.sensors import ContactSensor
 from isaaclab.utils.math import quat_rotate_inverse, yaw_quat, euler_xyz_from_quat
+import isaaclab_tasks.manager_based.locomotion.velocity.mdp as mdp
 
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedRLEnv
 
-def get_gait_phase(env: ManagerBasedRLEnv, cycle_steps: float) -> torch.Tensor:
-    # cycle_steps = 64
-    episode_length_buf = env.episode_length_buf if hasattr(env, "episode_length_buf") else torch.zeros(env.num_envs, device=env.device, dtype=torch.long)
-    phase = episode_length_buf / cycle_steps
-    sin_pos = torch.sin(2 * torch.pi * phase)
-    stance_mask = torch.zeros(env.scene.num_envs, 2, device=env.device)
-    stance_mask[:, 0] = sin_pos >= 0
-    stance_mask[:, 1] = sin_pos < 0
+def get_gait_phase(env: ManagerBasedRLEnv) -> torch.Tensor:
+    if env.spec is not None and "wbc" in env.spec.id:
+        phase = mdp.phi(env, command_name="base_velocity")
+        sin_pos = torch.sin(2 * torch.pi * phase)
+        stance_mask = torch.zeros(env.scene.num_envs, 2, device=env.device)
+        stance_mask[:, 0] = sin_pos[:, 0] >= 0
+        stance_mask[:, 1] = sin_pos[:, 0] >= 0
+    else:
+        episode_length_buf = env.episode_length_buf if hasattr(env, "episode_length_buf") else torch.zeros(env.num_envs, device=env.device, dtype=torch.long)
+        cycle_steps = env.cycle_steps if hasattr(env, "cycle_steps") else 64
+        phase = episode_length_buf / cycle_steps
+        sin_pos = torch.sin(2 * torch.pi * phase)
+        stance_mask = torch.zeros(env.scene.num_envs, 2, device=env.device)
+        stance_mask[:, 0] = sin_pos >= 0
+        stance_mask[:, 1] = sin_pos < 0
+
     stance_mask[torch.abs(sin_pos) < 0.1] = 1
 
     return stance_mask.to(device=env.device)
     
-def compute_ref_state(env: ManagerBasedRLEnv, cycle_steps: float, command_name: str) -> torch.Tensor:
+def compute_ref_state(env: ManagerBasedRLEnv, command_name: str) -> torch.Tensor:
     command_vel = torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1).cpu()
+    cycle_steps = env.cycle_steps if hasattr(env, "cycle_steps") else 64
     phase = env.episode_length_buf / cycle_steps
     # left foot stance phase set to default joint pos, l3, l4, l5
     ref_dof_pos = torch.zeros(env.scene.num_envs, sum(env.action_manager.action_term_dim), device = env.device)
@@ -46,11 +56,11 @@ def compute_ref_state(env: ManagerBasedRLEnv, cycle_steps: float, command_name: 
     ref_dof_pos[:, 9] = trun_sin(2 * torch.pi * (phase - 1/2), interpolation['min'][2](command_vel), interpolation['max'][2](command_vel))
     return ref_dof_pos.to(device=env.device)
 
-def compute_ref_state_constant(env: ManagerBasedRLEnv, cycle_steps: float) -> torch.Tensor:
-    # cycle_steps = 64
+def compute_ref_state_constant(env: ManagerBasedRLEnv) -> torch.Tensor:
     # command_vel = torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1).cpu()
     # command_vel.fill_(0.4)
     episode_length_buf = env.episode_length_buf if hasattr(env, "episode_length_buf") else torch.zeros(env.num_envs, device=env.device, dtype=torch.long)
+    cycle_steps = env.cycle_steps if hasattr(env, "cycle_steps") else 64
     phase = episode_length_buf / cycle_steps
     # left foot stance phase set to default joint pos, l3, l4, l5
     ref_dof_pos = torch.zeros(env.scene.num_envs, sum(env.action_manager.action_term_dim), device = env.device)
@@ -65,7 +75,6 @@ def compute_ref_state_constant(env: ManagerBasedRLEnv, cycle_steps: float) -> to
 
 # ================================================ Rewards ================================================== #
 def joint_pos(env: ManagerBasedRLEnv, 
-              cycle_steps: float, 
               command_name: str, 
               constant: bool = False,
               asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")):
@@ -74,9 +83,9 @@ def joint_pos(env: ManagerBasedRLEnv,
     '''
     # 计算当前参考位置
     if not constant:
-        ref_dof_pos = compute_ref_state(env, cycle_steps, command_name)
+        ref_dof_pos = compute_ref_state(env, command_name)
     else:
-        ref_dof_pos = compute_ref_state_constant(env, cycle_steps)
+        ref_dof_pos = compute_ref_state_constant(env)
     # 计算差值
     asset: Articulation = env.scene[asset_cfg.name]
     ref_dof_pos[:, 4] = torch.min(ref_dof_pos[:, 4], asset.data.default_joint_pos[:, 4])
@@ -95,7 +104,6 @@ def joint_pos(env: ManagerBasedRLEnv,
 
 def feet_clearance(env: ManagerBasedRLEnv, 
                    sensor_cfg: SceneEntityCfg, 
-                   cycle_steps: float, 
                    target_feet_height: float,
                    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")):
     '''
@@ -111,16 +119,16 @@ def feet_clearance(env: ManagerBasedRLEnv,
     env.feet_height += delta_z
     env.last_feet_z = feet_z
     # 计算当前步态下处于摆动阶段的脚
-    swing_mask = 1 - get_gait_phase(env, cycle_steps)
-    # 计算奖励
+    swing_mask = 1 - get_gait_phase(env)
+    # 计算奖励, 在跑步阶段提高抬脚目标
+    # lin_x = env.command_manager.get_command("base_velocity")[:, 0]
+    # target_feet_height = target_feet_height + 0.06 * torch.max(lin_x - 1, 0)[0]
     rew = torch.abs(env.feet_height - target_feet_height) < 0.01
     rew = torch.sum(rew * swing_mask, dim=1)
     env.feet_height *= ~contact
     return rew
 
-def feet_contact_number(env: ManagerBasedRLEnv, 
-                        sensor_cfg: SceneEntityCfg, 
-                        cycle_steps: float,):
+def feet_contact_number(env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg):
     '''
     根据与步态阶段对齐的脚接触次数计算奖励
     '''
@@ -128,15 +136,13 @@ def feet_contact_number(env: ManagerBasedRLEnv,
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     in_contact = contact_sensor.data.net_forces_w[:, sensor_cfg.body_ids, 2] > 5
     # 计算当前步态下处于站立阶段的脚
-    stance_mask = get_gait_phase(env, cycle_steps)
+    stance_mask = get_gait_phase(env)
     # 计算奖励
     rew = torch.where(in_contact == stance_mask, 1.0, -0.3)
     return torch.mean(rew, dim=1)
 
 
-def feet_air_time(env: ManagerBasedRLEnv,
-                  sensor_cfg: SceneEntityCfg, 
-                  cycle_steps: float):
+def feet_air_time(env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg):
     '''
     根据当前是否是刚落地, 给出上次悬空的时间奖励
     '''
@@ -144,7 +150,7 @@ def feet_air_time(env: ManagerBasedRLEnv,
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     contact = contact_sensor.data.net_forces_w[:, sensor_cfg.body_ids, 2] > 5
     last_contacts = contact_sensor.data.net_forces_w_history[:, -2, sensor_cfg.body_ids, 2] <= 5
-    stance_mask = get_gait_phase(env, cycle_steps)
+    stance_mask = get_gait_phase(env)
     contact_flit = torch.logical_and(torch.logical_or(contact, stance_mask), last_contacts)
     # 计算奖励
     rew = torch.sum(torch.clamp(contact_sensor.data.last_air_time[:, sensor_cfg.body_ids], 0, 0.5) * contact_flit, dim=1)
@@ -156,7 +162,7 @@ def foot_slip(env: ManagerBasedRLEnv,
     '''
     计算减少脚滑的奖励, 参考feet_slide
     '''
-    # 找到历史里最大的接触力判断是否接触 TODO: 可以只判断当前帧防止惩罚过大
+    # 找到历史里最大的接触力判断是否接触
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     contacts = contact_sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids, :].norm(dim=-1).max(dim=1)[0] > 1.0
     asset: Articulation = env.scene[asset_cfg.name]
@@ -321,7 +327,6 @@ def default_joint_pos(env: ManagerBasedRLEnv,
     return rew
 
 def base_height(env: ManagerBasedRLEnv, 
-                cycle_steps: float,
                 base_height_target: float,
                 asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")):
     '''
@@ -330,7 +335,7 @@ def base_height(env: ManagerBasedRLEnv,
     # 计算双脚平均高度
     asset: Articulation = env.scene[asset_cfg.name]
     feet_height = asset.data.joint_pos[:, [10, 11]]
-    stance_mask = get_gait_phase(env, cycle_steps)
+    stance_mask = get_gait_phase(env)
     measured_heights = torch.sum(feet_height * stance_mask, dim=1) / torch.sum(stance_mask)
     # 计算机身高度
     base_height = asset.data.root_link_pos_w[:, 2] - (measured_heights - 0.05)

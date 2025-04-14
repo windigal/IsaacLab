@@ -15,3 +15,4 @@ from .string import *
 from .timer import Timer
 from .types import *
 from .joystick import *
+from .mirror import *

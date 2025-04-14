@@ -29,5 +29,6 @@ for j in range(3):
     
     
 def trun_sin(x, min: float, max: float):
-    return (torch.sin(x.cpu()) + 1) / 2 * (max - min) + min
+    # return (torch.sin(x.cpu()) + 1) / 2 * (max - min) + min
+    return (torch.sin(x) + 1) / 2 * (max - min) + min
 

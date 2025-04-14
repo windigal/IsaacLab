@@ -1882,3 +1882,20 @@ def generate_random_transformation_matrix(pos_boundary=1, rot_boundary=(2 * math
     T[:3, 3] = translation
 
     return T
+
+
+def phi_smooth(phi: torch.Tensor, eps: float = 0.05) -> torch.Tensor:
+    """Smooths the input tensor using a Gaussian kernel.
+
+    Args:
+        phi (torch.Tensor): Input tensor to be smoothed.
+        eps (float, optional): Standard deviation of the Gaussian kernel. Defaults to 0.05.
+
+    Returns:
+        torch.Tensor: Smoothed tensor.
+    """
+    import scipy.stats as stats
+    phi_t = phi.clone().cpu().detach()
+    C = stats.norm.cdf(phi_t / eps) * (1 - stats.norm.cdf((phi_t - 0.5) / eps)) + \
+        stats.norm.cdf((phi_t - 1.0) / eps) * (1 - stats.norm.cdf((phi_t - 1.5) / eps))
+    return torch.tensor(C, dtype=phi.dtype, device=phi.device)
