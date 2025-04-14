@@ -91,16 +91,22 @@ class MySceneCfg(InteractiveSceneCfg):
 class CommandsCfg:
     """Command specifications for the MDP."""
 
-    base_velocity = mdp.UniformVelocityCommandCfg(
+    base_velocity = mdp.HumanoidWholeBodyControlCommandCfg(
         asset_name="robot",
         resampling_time_range=(10.0, 10.0),
-        rel_standing_envs=0.02,
-        rel_heading_envs=1.0,
+        rel_standing_envs=0.0,
+        rel_heading_envs=0.0,
         heading_command=False,
         heading_control_stiffness=0.5,
         debug_vis=True,
-        ranges=mdp.UniformVelocityCommandCfg.Ranges(
-            lin_vel_x=(-0.4, 1.0), lin_vel_y=(-0.2, 0.2), ang_vel_z=(-0.4, 0.4), heading=(-math.pi, math.pi)
+        ranges=mdp.HumanoidWholeBodyControlCommandCfg.Ranges(
+            gaits=(0.0, 2.0),
+            walk_lin_vel_x=(-0.4, 1.0), 
+            run_lin_vel_x=(1.0, 2.0), 
+            jump_lin_vel_x=(-0.4, 1.5),
+            lin_vel_y=(-0.2, 0.2), 
+            ang_vel_z=(-0.4, 0.4), 
+            heading=(-math.pi, math.pi), 
         ),
     )
 
@@ -119,19 +125,16 @@ class ObservationsCfg:
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
-
+        history_length=5
         # observation terms (order preserved)
-        phase = ObsTerm(func=mdp.command_phase)
         base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.1, n_max=0.1))
         base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))
-        projected_gravity = ObsTerm(
-            func=mdp.projected_gravity,
-            noise=Unoise(n_min=-0.05, n_max=0.05),
-        )
-        velocity_commands = ObsTerm(func=mdp.generated_commands, params={"command_name": "base_velocity"})
+        projected_gravity = ObsTerm(func=mdp.projected_gravity, noise=Unoise(n_min=-0.05, n_max=0.05))
         joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.5, n_max=1.5))
         actions = ObsTerm(func=mdp.last_action, clip=(-20.0, 20.0))
+        velocity_commands = ObsTerm(func=mdp.generated_commands, params={"command_name": "base_velocity"})
+        phase = ObsTerm(func=mdp.phase, params={"command_name": "base_velocity"})
 
         def __post_init__(self):
             self.enable_corruption = True
@@ -142,20 +145,19 @@ class ObservationsCfg:
         """Observations for Critic group."""
         
         # observation terms (order preserved)
-        phase = ObsTerm(func=mdp.command_phase)
-        velocity_commands = ObsTerm(func=mdp.generated_commands, params={"command_name": "base_velocity"})
+        base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.1, n_max=0.1))
+        base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))
+        projected_gravity = ObsTerm(func=mdp.projected_gravity, noise=Unoise(n_min=-0.05, n_max=0.05))
         joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.5, n_max=1.5))
         actions = ObsTerm(func=mdp.last_action, clip=(-20.0, 20.0))
-        ref_dof_pos = ObsTerm(func=mdp.compute_ref_state_constant)
-        base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.1, n_max=0.1))
-        base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))
+        velocity_commands = ObsTerm(func=mdp.generated_commands, params={"command_name": "base_velocity"})
+        phase = ObsTerm(func=mdp.command_phase)
+        ref_dof_pos = ObsTerm(func=mdp.compute_ref_state_wbc, params={"command_name": "base_velocity"})
         base_euler_xyz = ObsTerm(func=mdp.base_euler_xyz)
         frictions = ObsTerm(func=mdp.frictions)
         mass = ObsTerm(func=mdp.mass)
-        stance_mask = ObsTerm(func=mdp.get_gait_phase)
-        contract_mask = ObsTerm(func=mdp.contract_mask, 
-                                params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=["leg_l6_link", "leg_r6_link"])})
+        clearance = ObsTerm(func=mdp.clearance, params={"asset_cfg": SceneEntityCfg("robot", body_names=["leg_l6_link", "leg_r6_link"])})
         
     
     # observation groups

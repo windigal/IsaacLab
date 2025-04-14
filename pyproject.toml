@@ -98,6 +98,7 @@ reportOperatorIssue = "none"
 reportReturnType = "none"
 reportOptionalIterable = "none"
 reportIndexIssue = "none"
+reportOptionalOperand = "none"
 
 [tool.codespell]
 skip = '*.usd,*.svg,*.png,_isaac_sim*,*.bib,*.css,*/_build'

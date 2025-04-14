@@ -130,7 +130,6 @@ class LejuV2Rewards():
         func=mdp.joint_pos,
         weight=3.2,
         params={
-            "cycle_steps":64,
             "command_name":"base_velocity",
             "constant":True,
         }
@@ -140,7 +139,6 @@ class LejuV2Rewards():
         weight=1.0,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["leg_l6_link", "leg_r6_link"]),
-            "cycle_steps":64,
             "target_feet_height":0.06,
             "asset_cfg": SceneEntityCfg("robot", body_names=["leg_l6_link", "leg_r6_link"]),
         }
@@ -150,7 +148,6 @@ class LejuV2Rewards():
         weight=1.2,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["leg_l6_link", "leg_r6_link"]),
-            "cycle_steps":64,
         }
     )
     feet_air_time = RewTerm(
@@ -158,7 +155,6 @@ class LejuV2Rewards():
         weight=1.0,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["leg_l6_link", "leg_r6_link"]),
-            "cycle_steps":64,
         }
     )
     foot_slip = RewTerm(
@@ -241,7 +237,6 @@ class LejuV2Rewards():
         func=mdp.base_height,
         weight=0.2,
         params={
-            "cycle_steps":64,
             "base_height_target":0.85,
         }
     )

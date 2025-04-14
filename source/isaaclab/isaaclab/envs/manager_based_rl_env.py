@@ -206,8 +206,6 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
         self.reset_time_outs = self.termination_manager.time_outs
         # -- reward computation
         self.reward_buf = self.reward_manager.compute(dt=self.step_dt)
-        # if self.episode_length_buf[0] == 1999:
-        #     print(self.reward_manager._episode_sums)
         if len(self.recorder_manager.active_terms) > 0:
             # update observations for recording if needed
             self.obs_buf = self.observation_manager.compute()
@@ -396,6 +394,8 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
 
     def _property_from_humanoidgym(self):
         self.last_feet_z = 0.0
+        self.cycle_time = self.cfg.cycle_time
+        self.cycle_steps = self.cycle_time / self.cfg.sim.dt / self.cfg.decimation
         self.feet_height = torch.zeros((self.scene.num_envs, 2), device=self.device)
         self.dof_pos_buf = torch.zeros((2001, 6), device=self.device)
         self.ref_dof_pos_buf = torch.zeros((2001, 6), device=self.device)

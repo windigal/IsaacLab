@@ -535,10 +535,11 @@ def generated_commands(env: ManagerBasedRLEnv, command_name: str) -> torch.Tenso
 Humanoidgym.
 """
 
-def command_phase(env: ManagerBasedRLEnv, cycle_time: float=0.64):
+def command_phase(env: ManagerBasedRLEnv):
     episode_length_buf = env.episode_length_buf if hasattr(env, "episode_length_buf") else torch.zeros(env.num_envs, device=env.device, dtype=torch.long)
-    phase_sin = torch.sin(2 * torch.pi * episode_length_buf / (cycle_time / env.cfg.sim.dt / env.cfg.decimation))
-    phase_cos = torch.cos(2 * torch.pi * episode_length_buf / (cycle_time / env.cfg.sim.dt / env.cfg.decimation))
+    cycle_steps = env.cycle_steps if hasattr(env, "cycle_steps") else 64
+    phase_sin = torch.sin(2 * torch.pi * episode_length_buf / cycle_steps)
+    phase_cos = torch.cos(2 * torch.pi * episode_length_buf / cycle_steps)
     return torch.stack([phase_sin, phase_cos], dim=1)
 
 def base_euler_xyz(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")):
@@ -561,3 +562,30 @@ def contract_mask(env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg):
     contract_mask = contact_sensor.data.net_forces_w[:, sensor_cfg.body_ids, 2] > 5
     return contract_mask
 
+"""
+Humanoid Whole Body Control
+"""
+
+def phi(env: ManagerBasedRLEnv, command_name: str):
+    command = env.command_manager.get_command(command_name)
+    cycle_steps = env.cycle_steps if hasattr(env, "cycle_steps") else 64
+    phi_stance = command[:, 4].unsqueeze(1)
+    episode_length_buf = env.episode_length_buf if hasattr(env, "episode_length_buf") else torch.zeros(env.num_envs, device=env.device, dtype=torch.long)
+    phi = torch.zeros((command.shape[0], 2), device=env.device)
+    stand_env_ids = (command[:, 3] == 3.).nonzero(as_tuple=False).flatten()
+    jump_env_ids = (command[:, 3] == 2.).nonzero(as_tuple=False).flatten()
+    phi[:, 0] = (episode_length_buf % cycle_steps) / cycle_steps
+    phi[:, 1] = (episode_length_buf % cycle_steps) / cycle_steps + 0.5
+    phi[stand_env_ids, :] = torch.tensor([[0.25, 0.25]]).to(env.device)
+    phi[jump_env_ids, 1] -= 0.5
+    phi[phi > 1] -= 1
+    phi = torch.where(phi < phi_stance, 0.5 * phi / phi_stance, 0.5 * (phi - phi_stance) / (1 - phi_stance) + 0.5)
+    return phi
+
+def phase(env: ManagerBasedRLEnv, command_name: str):
+    return torch.sin(2 * torch.pi * phi(env, command_name))
+
+def clearance(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")):
+    asset: RigidObject = env.scene[asset_cfg.name]
+    feet_height = asset.data.root_pos_w[:, 2].unsqueeze(1) - asset.data.root_com_pos_w[:, 2].unsqueeze(1)
+    return feet_height

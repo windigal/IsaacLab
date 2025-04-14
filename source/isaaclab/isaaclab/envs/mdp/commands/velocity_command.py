@@ -21,7 +21,7 @@ from isaaclab.markers import VisualizationMarkers
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedEnv
 
-    from .commands_cfg import NormalVelocityCommandCfg, UniformVelocityCommandCfg
+    from .commands_cfg import NormalVelocityCommandCfg, UniformVelocityCommandCfg, HumanoidWholeBodyControlCommandCfg
 
 
 class UniformVelocityCommand(CommandTerm):
@@ -102,9 +102,7 @@ class UniformVelocityCommand(CommandTerm):
     @property
     def command(self) -> torch.Tensor:
         """The desired base velocity command in the base frame. Shape is (num_envs, 3)."""
-        # import traceback
-        # traceback.print_stack()
-        # print(self.vel_command_b)
+
         return self.vel_command_b
 
     """
@@ -292,3 +290,73 @@ class NormalVelocityCommand(UniformVelocityCommand):
         self.vel_command_b[zero_vel_x_env_ids, 0] = 0.0
         self.vel_command_b[zero_vel_y_env_ids, 1] = 0.0
         self.vel_command_b[zero_vel_yaw_env_ids, 2] = 0.0
+
+
+class HumanoidWholeBodyControlCommand(UniformVelocityCommand):
+    cfg: HumanoidWholeBodyControlCommandCfg
+    """The configuration of the command generator."""
+    def __init__(self, cfg: HumanoidWholeBodyControlCommandCfg, env: ManagerBasedEnv):
+        """Initialize the command generator.
+
+        Args:
+            cfg: The configuration of the command generator.
+            env: The environment.
+        """
+        # initialize the base class
+        super().__init__(cfg, env)
+        self.gait = torch.zeros(self.num_envs, 1, device=self.device)
+        self.phi_stance = torch.zeros(self.num_envs, 1, device=self.device)
+    
+    def __str__(self) -> str:
+        """Return a string representation of the command generator."""
+        msg = "HumanoidWholeBodyControlCommand:\n"
+        msg += f"\tCommand dimension: {tuple(self.command.shape[1:])}\n"
+        msg += f"\tResampling time range: {self.cfg.resampling_time_range}\n"
+        msg += f"\tHeading command: {self.cfg.heading_command}\n"
+        return msg
+
+    """
+    Properties
+    """
+
+    @property
+    def command(self) -> torch.Tensor:
+        """The gait and desired base velocity command in the base frame. Shape is (num_envs, 4)."""
+
+        return torch.cat((self.vel_command_b, self.gait, self.phi_stance), dim=1)
+
+    def _resample_command(self, env_ids: Sequence[int]):
+        # sample velocity commands
+        r = torch.empty(len(env_ids), device=self.device)
+        # sample gait
+        self.gait[env_ids, :] = torch.floor(r.uniform_(*self.cfg.ranges.gaits)).unsqueeze(1)
+        gait = self.gait[env_ids, :].clone().squeeze(1)
+        walk_env_ids = env_ids[(gait == 0).nonzero(as_tuple=False).flatten()]
+        run_env_ids = env_ids[(gait == 1).nonzero(as_tuple=False).flatten()]
+        jump_env_ids = env_ids[(gait == 2).nonzero(as_tuple=False).flatten()]
+        stand_env_ids = env_ids[(gait == 3).nonzero(as_tuple=False).flatten()]
+        
+        # sample velocity commands for each gait
+        # -- standing
+        self.vel_command_b[stand_env_ids, :] = 0.0
+        
+        # -- walking
+        r = torch.empty(len(walk_env_ids), device=self.device)
+        self.vel_command_b[walk_env_ids, 0] = r.uniform_(*self.cfg.ranges.walk_lin_vel_x)
+        self.vel_command_b[walk_env_ids, 1] = r.uniform_(*self.cfg.ranges.lin_vel_y)
+        self.vel_command_b[walk_env_ids, 2] = r.uniform_(*self.cfg.ranges.ang_vel_z)
+        
+        # -- running
+        r = torch.empty(len(run_env_ids), device=self.device)
+        self.vel_command_b[run_env_ids, 0] = r.uniform_(*self.cfg.ranges.run_lin_vel_x)
+        self.vel_command_b[run_env_ids, 1] = r.uniform_(*self.cfg.ranges.lin_vel_y)
+        self.vel_command_b[run_env_ids, 2] = r.uniform_(*self.cfg.ranges.ang_vel_z)
+        
+        # -- jumping
+        r = torch.empty(len(jump_env_ids), device=self.device)
+        self.vel_command_b[jump_env_ids, 0] = r.uniform_(*self.cfg.ranges.jump_lin_vel_x)
+        self.vel_command_b[jump_env_ids, 1] = r.uniform_(*self.cfg.ranges.lin_vel_y)
+        self.vel_command_b[jump_env_ids, 2] = r.uniform_(*self.cfg.ranges.ang_vel_z)
+        
+        self.phi_stance[env_ids, :] = 0.5
+        self.phi_stance[run_env_ids, 0] = 0.5 - 0.08 * (torch.norm(self.vel_command_b[run_env_ids, :3], dim=1) - 1.0)
