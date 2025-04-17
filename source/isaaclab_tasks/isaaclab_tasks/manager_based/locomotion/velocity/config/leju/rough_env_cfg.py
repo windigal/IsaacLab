@@ -128,11 +128,7 @@ class LejuRoughEnvCfg_PLAY(LejuRoughEnvCfg):
 class LejuV2Rewards():
     joint_pos = RewTerm(
         func=mdp.joint_pos,
-        weight=3.2,
-        params={
-            "command_name":"base_velocity",
-            "constant":True,
-        }
+        weight=3.2
     )
     feet_clearance = RewTerm(
         func=mdp.feet_clearance,

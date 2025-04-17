@@ -79,5 +79,5 @@ class ManagerBasedRLEnvCfg(ManagerBasedEnvCfg):
     Please refer to the :class:`isaaclab.managers.CommandManager` class for more details.
     """
 
-    cycle_time: float = MISSING
+    cycle_time: float | None = None
     """Cycle time for the environment."""

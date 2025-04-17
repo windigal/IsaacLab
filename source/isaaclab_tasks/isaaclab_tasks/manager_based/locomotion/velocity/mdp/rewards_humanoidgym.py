@@ -40,21 +40,6 @@ def get_gait_phase(env: ManagerBasedRLEnv) -> torch.Tensor:
     stance_mask[torch.abs(sin_pos) < 0.1] = 1
 
     return stance_mask.to(device=env.device)
-    
-def compute_ref_state(env: ManagerBasedRLEnv, command_name: str) -> torch.Tensor:
-    command_vel = torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1).cpu()
-    cycle_steps = env.cycle_steps if hasattr(env, "cycle_steps") else 64
-    phase = env.episode_length_buf / cycle_steps
-    # left foot stance phase set to default joint pos, l3, l4, l5
-    ref_dof_pos = torch.zeros(env.scene.num_envs, sum(env.action_manager.action_term_dim), device = env.device)
-    ref_dof_pos[:, 4] = trun_sin(2 * torch.pi * phase, interpolation['min'][0](command_vel), interpolation['max'][0](command_vel))
-    ref_dof_pos[:, 6] = trun_sin(2 * torch.pi * (phase - 1/2), interpolation['min'][1](command_vel), interpolation['max'][1](command_vel))
-    ref_dof_pos[:, 8] = trun_sin(2 * torch.pi * phase, interpolation['min'][2](command_vel), interpolation['max'][2](command_vel))
-    # right foot stance phase set to default joint pos, r3, r4, r5
-    ref_dof_pos[:, 5] = trun_sin(2 * torch.pi * (phase - 1/2), interpolation['min'][0](command_vel), interpolation['max'][0](command_vel))
-    ref_dof_pos[:, 7] = trun_sin(2 * torch.pi * phase, interpolation['min'][1](command_vel), interpolation['max'][1](command_vel))
-    ref_dof_pos[:, 9] = trun_sin(2 * torch.pi * (phase - 1/2), interpolation['min'][2](command_vel), interpolation['max'][2](command_vel))
-    return ref_dof_pos.to(device=env.device)
 
 def compute_ref_state_constant(env: ManagerBasedRLEnv) -> torch.Tensor:
     # command_vel = torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1).cpu()
@@ -74,18 +59,12 @@ def compute_ref_state_constant(env: ManagerBasedRLEnv) -> torch.Tensor:
     return ref_dof_pos.to(device=env.device)
 
 # ================================================ Rewards ================================================== #
-def joint_pos(env: ManagerBasedRLEnv, 
-              command_name: str, 
-              constant: bool = False,
-              asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")):
+def joint_pos(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")):
     '''
     计算当前关节位置和参考关节位置的差
     '''
     # 计算当前参考位置
-    if not constant:
-        ref_dof_pos = compute_ref_state(env, command_name)
-    else:
-        ref_dof_pos = compute_ref_state_constant(env)
+    ref_dof_pos = compute_ref_state_constant(env)
     # 计算差值
     asset: Articulation = env.scene[asset_cfg.name]
     ref_dof_pos[:, 4] = torch.min(ref_dof_pos[:, 4], asset.data.default_joint_pos[:, 4])
