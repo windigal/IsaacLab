@@ -21,7 +21,7 @@ from isaaclab.ui.widgets import ManagerLiveVisualizer
 from .common import VecEnvStepReturn
 from .manager_based_env import ManagerBasedEnv
 from .manager_based_rl_env_cfg import ManagerBasedRLEnvCfg
-
+import isaaclab_tasks.manager_based.locomotion.velocity.mdp as mdp
 
 class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
     """The superclass for the manager-based workflow reinforcement learning-based environments.
@@ -178,7 +178,11 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
         # check if we need to do rendering within the physics loop
         # note: checked here once to avoid multiple checks within the loop
         is_rendering = self.sim.has_gui() or self.sim.has_rtx_sensors()
-
+        # if self.episode_length_buf[0] < 20:
+        #     # actions = torch.tensor([0.0, 0.0, 0.0, 0.0, -0.27, -0.27, 0.52,  0.52, -0.3, -0.3, 0.0, 0.0], device=self.device).unsqueeze(0).repeat(self.num_envs, 1)
+        #     actions = torch.tensor([0.0, 0.0, 0.0, 0.0, 0, 0, 0.0,  0.0, -0.0, -0.0, 0.0, 0.0], device=self.device).unsqueeze(0).repeat(self.num_envs, 1)
+        # else:
+        #     actions = mdp.compute_ref_state_wbc(self, "base_velocity")
         # perform physics stepping
         for _ in range(self.cfg.decimation):
             self._sim_step_counter += 1
@@ -432,7 +436,7 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
         
         plt.tight_layout()
         plt.subplots_adjust(top=0.9)
-        plt.savefig("./imgs/track.png")
+        plt.savefig("./imgs/track2.png")
         self.dof_pos_buf = torch.zeros((2001, 6), device=self.device)
         self.ref_dof_pos_buf = torch.zeros((2001, 6), device=self.device)
         print("saved")

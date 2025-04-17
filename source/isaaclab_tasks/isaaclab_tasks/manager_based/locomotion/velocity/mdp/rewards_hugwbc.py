@@ -42,6 +42,14 @@ def compute_ref_state_wbc(env: ManagerBasedRLEnv, command_name: str, asset_cfg: 
     ref_dof_pos[:, 9] = trun_sin(2 * torch.pi * phi[:, 1], -0.55, -0.05)
     ref_dof_pos[:, 9] = torch.where(ref_dof_pos[:, 9] < asset.data.default_joint_pos[:, 9], 
                                     ref_dof_pos[:, 9], - ref_dof_pos[:, 5] - ref_dof_pos[:, 7])
+    # run test
+    # ref_dof_pos[:, 4] = trun_sin(2 * torch.pi * phi[:, 0], -0.7854, -0)
+    # ref_dof_pos[:, 6] = trun_sin(2 * torch.pi * (phi[:, 0] + 3/16), 0.5236, 1.7453)
+    # ref_dof_pos[:, 8] = trun_sin(2 * torch.pi * (phi[:, 0] - 3/8), -0.4363, 0.0873)
+    # # right foot stance phase set to default joint pos, r3, r4, r5
+    # ref_dof_pos[:, 5] = trun_sin(2 * torch.pi * phi[:, 1], -0.7854, -0)
+    # ref_dof_pos[:, 7] = trun_sin(2 * torch.pi * (phi[:, 1] + 3/16), 0.5236, 1.7453)
+    # ref_dof_pos[:, 9] = trun_sin(2 * torch.pi * (phi[:, 1] - 3/8), -0.4363, 0.0873)
     return ref_dof_pos.to(device=env.device)
 
 # ================================================ Rewards ================================================== #

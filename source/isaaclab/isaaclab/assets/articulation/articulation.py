@@ -169,7 +169,7 @@ class Articulation(AssetBase):
         self._external_force_b[env_ids] = 0.0
         self._external_torque_b[env_ids] = 0.0
 
-    def write_data_to_sim(self):
+    def write_data_to_sim(self, actions: torch.tensor | None = None):
         """Write external wrenches and joint commands to the simulation.
 
         If any explicit actuators are present, then the actuator models are used to compute the
@@ -192,6 +192,14 @@ class Articulation(AssetBase):
         # apply actuator models
         self._apply_actuator_model()
         # write actions into simulation
+        # position = torch.tensor([[0.0, 0.0, 0.89]], device=self.device)
+        # orientation = torch.tensor([[0.7835, 0.0000, 0.0000, -0.6214]], device=self.device)
+        # if actions is None:
+        # self.write_root_pose_to_sim(torch.cat([position, orientation], dim=-1), env_ids=self._ALL_INDICES)
+        # if actions is not None:
+        #     # action = torch.tensor([0, 0, 0, 0, 1.0, 0, 0, 0, 0, 0, 0, 0], device=self.device).unsqueeze(0).repeat(1, 1)
+        #     self.write_joint_position_to_sim(actions, env_ids=self._ALL_INDICES)
+            
         self.root_physx_view.set_dof_actuation_forces(self._joint_effort_target_sim, self._ALL_INDICES)
         # position and velocity targets only for implicit actuators
         if self._has_implicit_actuators:

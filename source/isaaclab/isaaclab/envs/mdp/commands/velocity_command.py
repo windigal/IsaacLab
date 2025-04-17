@@ -359,4 +359,4 @@ class HumanoidWholeBodyControlCommand(UniformVelocityCommand):
         self.vel_command_b[jump_env_ids, 2] = r.uniform_(*self.cfg.ranges.ang_vel_z)
         
         self.phi_stance[env_ids, :] = 0.5
-        self.phi_stance[run_env_ids, 0] = 0.5 - 0.08 * (torch.norm(self.vel_command_b[run_env_ids, :3], dim=1) - 1.0)
+        # self.phi_stance[run_env_ids, 0] = 0.5 - 0.3 * (torch.norm(self.vel_command_b[run_env_ids, :3], dim=1) - 1.0)

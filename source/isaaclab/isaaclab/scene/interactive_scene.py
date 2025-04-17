@@ -387,11 +387,11 @@ class InteractiveScene:
         for sensor in self._sensors.values():
             sensor.reset(env_ids)
 
-    def write_data_to_sim(self):
+    def write_data_to_sim(self, actions=None):
         """Writes the data of the scene entities to the simulation."""
         # -- assets
         for articulation in self._articulations.values():
-            articulation.write_data_to_sim()
+            articulation.write_data_to_sim(actions=actions)
         for deformable_object in self._deformable_objects.values():
             deformable_object.write_data_to_sim()
         for rigid_object in self._rigid_objects.values():
