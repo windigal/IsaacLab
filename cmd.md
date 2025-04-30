@@ -21,7 +21,7 @@ Check joint_names: `source/isaaclab/isaaclab/envs/mdp/observations.py:121 line`
 ## Commands
 - checkout config: `python ./scripts/benchmarks/benchmark_load_robot.py --robot leju`
 - train: `python ./scripts/reinforcement_learning/rsl_rl/train.py --task Isaac-Velocity-Flat-leju-v2 --headless`
-- evaluate: `python ./scripts/reinforcement_learning/rsl_rl/play.py --task Isaac-Velocity-Flat-leju-v2 --num_envs 1`
+- evaluate: `python ./scripts/reinforcement_learning/rsl_rl/play.py --task Isaac-Velocity-Flat-leju-v2 --num_envs 1 --device cpu`
 - tensorboard: `tensorboard --logdir=logs\rsl_rl\leju_flat\{timestamp}`
 
 # Update Infos

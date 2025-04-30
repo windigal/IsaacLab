@@ -241,8 +241,9 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
         # -- compute observations
         # note: done after reset to get the correct observations for reset envs
         self.obs_buf = self.observation_manager.compute()
-        # if self.episode_length_buf[0] == 320:
-        #     self.draw()
+        # draw_num = 320
+        # if self.episode_length_buf[0] == draw_num:
+        #     self.draw(draw_num)
         # return observations, rewards, resets and extras
         return self.obs_buf, self.reward_buf, self.reset_terminated, self.reset_time_outs, self.extras
 
@@ -405,11 +406,10 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
         self.dof_pos_buf = torch.zeros((2001, 6), device=self.device)
         self.ref_dof_pos_buf = torch.zeros((2001, 6), device=self.device)
         
-    def draw(self):
+    def draw(self, num):
         import matplotlib.pyplot as plt
         fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(15, 10))
         fig.suptitle('Pos track', fontsize=16)
-        num = 320
         x = np.linspace(0, 20, num)
         axes[0,0].plot(x, self.dof_pos_buf[:num, 0].cpu())
         axes[0,0].plot(x, self.ref_dof_pos_buf[:num, 0].cpu())

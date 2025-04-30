@@ -578,7 +578,7 @@ def phi(env: ManagerBasedRLEnv, command_name: str):
     phi[:, 0] = (episode_length_buf % cycle_steps) / cycle_steps
     phi[:, 1] = (episode_length_buf % cycle_steps) / cycle_steps + 0.5
     phi[stand_env_ids, :] = torch.tensor([[0.25, 0.25]]).to(env.device)
-    phi[run_env_ids, 1] -= 0.125
+    # phi[run_env_ids, 1] -= 0.5
     phi[jump_env_ids, 1] -= 0.5
     phi[phi > 1] -= 1
     phi = torch.where(phi < phi_stance, 0.5 * phi / phi_stance, 0.5 * (phi - phi_stance) / (1 - phi_stance) + 0.5)

@@ -25,31 +25,81 @@ if TYPE_CHECKING:
 def compute_ref_state_wbc(env: ManagerBasedRLEnv, command_name: str, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     phi = mdp.phi(env, command_name=command_name)
     asset: Articulation = env.scene[asset_cfg.name]
-    vel_x = env.command_manager.get_command(command_name)[:, 0]
+    vel_x = torch.abs(env.command_manager.get_command(command_name)[:, 0])
     delta = torch.max(vel_x - torch.ones_like(vel_x), torch.zeros_like(vel_x))
+    # walk test
     # left foot stance phase set to default joint pos, l3, l4, l5
     ref_dof_pos = torch.zeros(env.scene.num_envs, sum(env.action_manager.action_term_dim), device = env.device)
-    ref_dof_pos[:, 4] = trun_sin(2 * torch.pi * phi[:, 0], -0.52 - delta * 0.18, -0.02)
-    ref_dof_pos[:, 6] = trun_sin(2 * torch.pi * (phi[:, 0] - 1/2), 0.02, 1.02 + delta * 0.2)
-    ref_dof_pos[:, 6] = torch.max(ref_dof_pos[:, 6], asset.data.default_joint_pos[:, 6])
-    ref_dof_pos[:, 8] = trun_sin(2 * torch.pi * phi[:, 0], -0.55, -0.05)
-    ref_dof_pos[:, 8] = torch.where(ref_dof_pos[:, 8] < asset.data.default_joint_pos[:, 8], 
-                                    ref_dof_pos[:, 8], - ref_dof_pos[:, 4] - ref_dof_pos[:, 6])
-    # right foot stance phase set to default joint pos, r3, r4, r5
-    ref_dof_pos[:, 5] = trun_sin(2 * torch.pi * phi[:, 1], -0.52 - delta * 0.18, -0.02)
-    ref_dof_pos[:, 7] = trun_sin(2 * torch.pi * (phi[:, 1] - 1/2), 0.02, 1.02 + delta * 0.2)
-    ref_dof_pos[:, 7] = torch.max(ref_dof_pos[:, 7], asset.data.default_joint_pos[:, 7])
-    ref_dof_pos[:, 9] = trun_sin(2 * torch.pi * phi[:, 1], -0.55, -0.05)
-    ref_dof_pos[:, 9] = torch.where(ref_dof_pos[:, 9] < asset.data.default_joint_pos[:, 9], 
-                                    ref_dof_pos[:, 9], - ref_dof_pos[:, 5] - ref_dof_pos[:, 7])
-    # run test
-    # ref_dof_pos[:, 4] = trun_sin(2 * torch.pi * phi[:, 0], -0.7854, -0)
-    # ref_dof_pos[:, 6] = trun_sin(2 * torch.pi * (phi[:, 0] + 3/16), 0.5236, 1.7453)
-    # ref_dof_pos[:, 8] = trun_sin(2 * torch.pi * (phi[:, 0] - 3/8), -0.4363, 0.0873)
+    # ref_dof_pos[:, 4] = trun_sin(2 * torch.pi * phi[:, 0], -0.52 - delta * 0.18, -0.02)
+    # ref_dof_pos[:, 6] = trun_sin(2 * torch.pi * (phi[:, 0] - 1/2), 0.02, 1.02 + delta * 0.2)
+    # ref_dof_pos[:, 6] = torch.max(ref_dof_pos[:, 6], asset.data.default_joint_pos[:, 6])
+    # ref_dof_pos[:, 8] = trun_sin(2 * torch.pi * phi[:, 0], -0.55, -0.05)
+    # ref_dof_pos[:, 8] = torch.where(ref_dof_pos[:, 8] < asset.data.default_joint_pos[:, 8], 
+    #                                 ref_dof_pos[:, 8], - ref_dof_pos[:, 4] - ref_dof_pos[:, 6])
     # # right foot stance phase set to default joint pos, r3, r4, r5
-    # ref_dof_pos[:, 5] = trun_sin(2 * torch.pi * phi[:, 1], -0.7854, -0)
-    # ref_dof_pos[:, 7] = trun_sin(2 * torch.pi * (phi[:, 1] + 3/16), 0.5236, 1.7453)
-    # ref_dof_pos[:, 9] = trun_sin(2 * torch.pi * (phi[:, 1] - 3/8), -0.4363, 0.0873)
+    # ref_dof_pos[:, 5] = trun_sin(2 * torch.pi * phi[:, 1], -0.52 - delta * 0.18, -0.02)
+    # ref_dof_pos[:, 7] = trun_sin(2 * torch.pi * (phi[:, 1] - 1/2), 0.02, 1.02 + delta * 0.2)
+    # ref_dof_pos[:, 7] = torch.max(ref_dof_pos[:, 7], asset.data.default_joint_pos[:, 7])
+    # ref_dof_pos[:, 9] = trun_sin(2 * torch.pi * phi[:, 1], -0.55, -0.05)
+    # ref_dof_pos[:, 9] = torch.where(ref_dof_pos[:, 9] < asset.data.default_joint_pos[:, 9], 
+    #                                 ref_dof_pos[:, 9], - ref_dof_pos[:, 5] - ref_dof_pos[:, 7])
+    # run test
+    
+    def run_ankle(phi):
+        y = torch.zeros_like(phi)
+        y[(phi > 2/16) & (phi < 12/16)] = 0.1209 * torch.sin(5.9381 * 16/10 * (phi[(phi > 2/16) & (phi < 12/16)] - 2/16) - 3.0487) - 0.2934
+        y[(phi >= 12/16) & (phi <= 1)] = 0.2033 * torch.sin(3.6140 * 16/6 * (phi[(phi >= 12/16) & (phi <= 1)] - 12/16) - 0.6329) - 0.0944
+        y[phi <= 2/16] = 0.2033 * torch.sin(3.6140 * 16/6 * (phi[phi <= 2/16] + 9/40) - 0.6329) - 0.0944
+        return y
+    
+    coefficient = 3 - vel_x 
+    ref_dof_pos[:, 4] = -0.3735 * torch.sin(2 * torch.pi * phi[:, 0] + 6.2393) - 0.3703
+    ref_dof_pos[:, 6] = -0.6497 * torch.sin(2 * torch.pi * phi[:, 0] + 1.2083) + 1.1049
+    ref_dof_pos[:, 8] = -run_ankle(phi[:, 0])
+    ref_dof_pos[:, 5] = -0.3735 * torch.sin(2 * torch.pi * phi[:, 1] + 6.2393) - 0.3703
+    ref_dof_pos[:, 7] = -0.6497 * torch.sin(2 * torch.pi * phi[:, 1] + 1.2083) + 1.1049
+    ref_dof_pos[:, 9] = -run_ankle(phi[:, 1])
+    ref_dof_pos = ref_dof_pos / coefficient.unsqueeze(1)
+    
+    # jump test
+    
+    # def dif(x, min_val, max_val):
+    #     y = torch.zeros_like(x)
+    #     y = torch.where(x < min_val, min_val - x, y)
+    #     y = torch.where(x > max_val, max_val - x, y)
+    #     return y
+
+    # def jump_hip(phi):
+    #     return 0.7127 * torch.sin(2 * torch.pi * phi - 0.7077) - 0.9902
+
+    # def jump_knee(phi):
+    #     return -0.5537 * torch.sin(34 / 9 * torch.pi *
+    #                         (phi - 3 / 17 + 0.35 * dif(phi, 0.25, 0.6)) + 0.0142) + 1.5105
+        
+    # def linear_fit(phi):
+    #     y = 1.7391 - (1.7391 - 1.3365) / (8/17) * (phi - 12/17 + (phi < 3 / 17).float())
+    #     y = y + (1.6 - y) * torch.minimum(phi - 12/17 + (phi < 3 / 17).float(), 3/17 - phi + (phi > 12 / 17).float()) / (8/17)
+    #     return y
+        
+    # def jump_knee_final(phi):
+    #     y = torch.where((phi > 3/17) & (phi < 12/17), jump_knee(phi), linear_fit(phi))
+    #     return y
+        
+    # def jump_ankle(phi):
+    #     y = torch.zeros_like(phi)
+    #     y[(phi > 5/16) & (phi < 10/16)] = 0.3568 * torch.sin(32/5 * torch.pi * (phi[(phi > 5/16) & (phi < 10/16)] - 5/16) - 1.3156) - 0.2421
+    #     y[(phi >= 10/16) & (phi <= 1)] = 0.1443 * torch.sin(32/11 * torch.pi * (phi[(phi >= 10/16) & (phi <= 1)] - 10/16) - 0.0940) - 0.6516
+    #     y[phi <= 5/16] = 0.1443 * torch.sin(32/11 * torch.pi * (phi[phi <= 5/16] + 11/32) - 0.0940) - 0.6516
+    #     return y
+
+    # coefficient = 2 - vel_x / 1.5
+    # ref_dof_pos[:, 4] = jump_hip(phi[:, 0])
+    # ref_dof_pos[:, 6] = jump_knee_final(phi[:, 0])
+    # ref_dof_pos[:, 8] = jump_ankle(phi[:, 0])
+    # ref_dof_pos[:, 5] = jump_hip(phi[:, 1])
+    # ref_dof_pos[:, 7] = jump_knee_final(phi[:, 1])
+    # ref_dof_pos[:, 9] = jump_ankle(phi[:, 1])
+    # ref_dof_pos = ref_dof_pos / coefficient.unsqueeze(1)
     return ref_dof_pos.to(device=env.device)
 
 # ================================================ Rewards ================================================== #
@@ -113,8 +163,8 @@ def Foot_Swing_Tracking(env: ManagerBasedRLEnv,
     diff = asset.data.joint_pos[:, asset_cfg.joint_ids] - ref_dof_pos
     # 计算奖励
     rew = torch.exp(-2 * torch.norm(diff, dim=1)) - 0.2 * torch.norm(diff, dim=1).clamp(0, 0.5)
-    # env.dof_pos_buf[env.episode_length_buf] = asset.data.joint_pos[0, [4,6,8,5,7,9]]
-    # env.ref_dof_pos_buf[env.episode_length_buf] = ref_dof_pos[0, [4,6,8,5,7,9]]
+    # env.dof_pos_buf[env.episode_length_buf - 1] = asset.data.joint_pos[0, [4,6,8,5,7,9]]
+    # env.ref_dof_pos_buf[env.episode_length_buf - 1] = ref_dof_pos[0, [4,6,8,5,7,9]]
     return rew
 
 
