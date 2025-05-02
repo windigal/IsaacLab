@@ -144,7 +144,7 @@ class LejuWBCRewards():
     )
     action_smoothness = RewTerm(
         func=mdp.action_smoothness,
-        weight=-2.5e-3,
+        weight=-2e-3,
     )
     torque = RewTerm(
         func=mdp.torque,
@@ -156,7 +156,7 @@ class LejuWBCRewards():
     )
     dof_acc = RewTerm(
         func=mdp.dof_acc,
-        weight=-2e-7,
+        weight=-1e-7,
     )
         
   

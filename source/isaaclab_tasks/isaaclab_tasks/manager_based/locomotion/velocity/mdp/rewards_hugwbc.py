@@ -37,19 +37,19 @@ def compute_ref_state_wbc(env: ManagerBasedRLEnv, command_name: str, asset_cfg: 
     jump_index = (gait == 2).nonzero(as_tuple=True)[0]
     # walk test
     if walk_index.shape[0] != 0:
-        ref_dof_pos[walk_index] = walk_gait_ref(phi, walk_index.shape[0], sum(env.action_manager.action_term_dim), 
-                                                env.device, delta, asset, robot_name)
+        ref_dof_pos[walk_index] = walk_gait_ref(phi[walk_index], walk_index.shape[0], sum(env.action_manager.action_term_dim), 
+                                                env.device, delta[walk_index], asset, robot_name, walk_index)
     
     # run test
     if run_index.shape[0] != 0:
-        coefficient = 3 - vel_x
-        ref_dof_pos[run_index] = run_gait_ref(phi, run_index.shape[0], sum(env.action_manager.action_term_dim), 
+        coefficient = 3 - vel_x[run_index]
+        ref_dof_pos[run_index] = run_gait_ref(phi[run_index], run_index.shape[0], sum(env.action_manager.action_term_dim), 
                                               env.device, robot_name) / coefficient.unsqueeze(1)
     
     # jump test
     if jump_index.shape[0] != 0:
-        coefficient = 2 - vel_x / 1.5
-        ref_dof_pos[jump_index] = jump_gait_ref(phi, jump_index.shape[0], sum(env.action_manager.action_term_dim), 
+        coefficient = 2 - vel_x[jump_index] / 1.5
+        ref_dof_pos[jump_index] = jump_gait_ref(phi[jump_index], jump_index.shape[0], sum(env.action_manager.action_term_dim), 
                                                 env.device, robot_name) / coefficient.unsqueeze(1)
 
     return ref_dof_pos.to(device=env.device)
