@@ -241,9 +241,10 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
         # -- compute observations
         # note: done after reset to get the correct observations for reset envs
         self.obs_buf = self.observation_manager.compute()
-        # draw_num = 320
+        # draw_num = 160
         # if self.episode_length_buf[0] == draw_num:
         #     self.draw(draw_num)
+        #     exit()
         # return observations, rewards, resets and extras
         return self.obs_buf, self.reward_buf, self.reset_terminated, self.reset_time_outs, self.extras
 

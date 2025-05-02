@@ -20,8 +20,14 @@ Check joint_names: `source/isaaclab/isaaclab/envs/mdp/observations.py:121 line`
 
 ## Commands
 - checkout config: `python ./scripts/benchmarks/benchmark_load_robot.py --robot leju`
-- train: `python ./scripts/reinforcement_learning/rsl_rl/train.py --task Isaac-Velocity-Flat-leju-v2 --headless`
-- evaluate: `python ./scripts/reinforcement_learning/rsl_rl/play.py --task Isaac-Velocity-Flat-leju-v2 --num_envs 1 --device cpu`
+- train:
+- - `python ./scripts/reinforcement_learning/rsl_rl/train.py --task Isaac-Velocity-Flat-leju-v2 --headless`
+- - `python ./scripts/reinforcement_learning/rsl_rl/train.py --task Isaac-Velocity-Flat-leju-wbc --headless`
+- - `python ./scripts/reinforcement_learning/rsl_rl/train.py --task Isaac-Velocity-Flat-G1-wbc --headless`
+- evaluate
+- - `python ./scripts/reinforcement_learning/rsl_rl/play.py --task Isaac-Velocity-Flat-leju-v2 --num_envs 1 --device=cpu`
+- - `python ./scripts/reinforcement_learning/rsl_rl/play.py --task Isaac-Velocity-Flat-leju-wbc --num_envs 1 --device=cpu`
+- - `python ./scripts/reinforcement_learning/rsl_rl/play.py --task Isaac-Velocity-Flat-G1-wbc --num_envs 1 --device=cpu`
 - tensorboard: `tensorboard --logdir=logs\rsl_rl\leju_flat\{timestamp}`
 
 # Update Infos

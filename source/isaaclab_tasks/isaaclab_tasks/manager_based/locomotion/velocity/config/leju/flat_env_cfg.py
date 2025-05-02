@@ -61,7 +61,7 @@ class LejuV2FlatEnvCfg(LejuV2RoughEnvCfg):
         # self.commands.base_velocity.ranges.lin_vel_x = (-0.4, 1.0)
         # self.commands.base_velocity.ranges.lin_vel_y = (-0.2, 0.2)
         # self.commands.base_velocity.ranges.ang_vel_z = (-0.4, 0.4)
-        # self.commands.base_velocity.ranges.lin_vel_x = (1.5, 1.5)
+        # self.commands.base_velocity.ranges.lin_vel_x = (1.0, 1.0)
         # self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
         # self.commands.base_velocity.ranges.ang_vel_z = (0.0, 0.0)
 

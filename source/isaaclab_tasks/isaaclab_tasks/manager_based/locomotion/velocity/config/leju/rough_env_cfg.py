@@ -8,15 +8,8 @@ from isaaclab.managers import SceneEntityCfg
 from isaaclab.utils import configclass
 
 import isaaclab_tasks.manager_based.locomotion.velocity.mdp as mdp
-from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg_leju import (
-    LocomotionVelocityHighFreqRoughEnvCfg,
-    RewardsCfg,
-)
-# from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg_leju_test import (
-#     LocomotionVelocityRoughEnvCfg,
-#     LocomotionVelocityHighFreqRoughEnvCfg,
-#     RewardsCfg,
-# )
+from .velocity_env_cfg_leju import LocomotionVelocityHighFreqRoughEnvCfg, RewardsCfg
+# from .velocity_env_cfg_leju_test import LocomotionVelocityHighFreqRoughEnvCfg, RewardsCfg
 
 ##
 # Pre-defined configs

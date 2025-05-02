@@ -157,7 +157,7 @@ class ObservationsCfg:
         base_euler_xyz = ObsTerm(func=mdp.base_euler_xyz)
         frictions = ObsTerm(func=mdp.frictions)
         mass = ObsTerm(func=mdp.mass)
-        clearance = ObsTerm(func=mdp.clearance, params={"asset_cfg": SceneEntityCfg("robot", body_names=["leg_l6_link", "leg_r6_link"])})
+        clearance = ObsTerm(func=mdp.clearance, params={"asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link")})
         
     
     # observation groups
@@ -250,7 +250,7 @@ class TerminationsCfg:
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
     base_height = DoneTerm(
         func=mdp.root_height_below_minimum,
-        params={"minimum_height": 0.3, "asset_cfg": SceneEntityCfg("robot", body_names="base_link")},
+        params={"minimum_height": 0.3, "asset_cfg": SceneEntityCfg("robot", body_names="torso_link")},
     )
 
 
