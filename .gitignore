@@ -6,7 +6,7 @@
 
 # Omniverse
 **/*.dmp
-**/.thumbs
+# **/.thumbs
 
 # No USD files allowed in the repo
 # **/*.usd
