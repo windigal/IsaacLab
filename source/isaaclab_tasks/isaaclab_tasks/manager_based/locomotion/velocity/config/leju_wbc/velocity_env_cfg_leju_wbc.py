@@ -100,7 +100,7 @@ class CommandsCfg:
         heading_control_stiffness=0.5,
         debug_vis=True,
         ranges=mdp.HumanoidWholeBodyControlCommandCfg.Ranges(
-            gaits=(0.0, 4.0),
+            gaits=(0.0, 2.0),
             walk_lin_vel_x=(-0.4, 1.0), 
             run_lin_vel_x=(1.0, 2.0), 
             jump_lin_vel_x=(-0.4, 1.5),

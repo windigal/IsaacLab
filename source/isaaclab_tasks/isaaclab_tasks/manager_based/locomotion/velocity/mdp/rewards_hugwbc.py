@@ -29,7 +29,6 @@ def compute_ref_state_wbc(env: ManagerBasedRLEnv, command_name: str, asset_cfg: 
         return asset.data.default_joint_pos
     robot_name = env.spec.id.split("-")[-2]
     vel_x = torch.abs(env.command_manager.get_command(command_name)[:, 0])
-    delta = torch.max(vel_x - torch.ones_like(vel_x), torch.zeros_like(vel_x))
     ref_dof_pos = torch.zeros(env.scene.num_envs, sum(env.action_manager.action_term_dim), device = env.device)
     gait = env.command_manager.get_command(command_name)[:, 3]
     walk_index = (gait == 0).nonzero(as_tuple=True)[0]
@@ -38,7 +37,7 @@ def compute_ref_state_wbc(env: ManagerBasedRLEnv, command_name: str, asset_cfg: 
     # walk test
     if walk_index.shape[0] != 0:
         ref_dof_pos[walk_index] = walk_gait_ref(phi[walk_index], walk_index.shape[0], sum(env.action_manager.action_term_dim), 
-                                                env.device, delta[walk_index], asset, robot_name, walk_index)
+                                                env.device, asset, robot_name)
     
     # run test
     if run_index.shape[0] != 0:
@@ -117,6 +116,8 @@ def Foot_Swing_Tracking(env: ManagerBasedRLEnv,
     rew = torch.exp(-2 * torch.norm(diff, dim=1)) - 0.2 * torch.norm(diff, dim=1).clamp(0, 0.5)
     # env.dof_pos_buf[env.episode_length_buf - 1] = asset.data.joint_pos[0, [4,6,8,5,7,9]]
     # env.ref_dof_pos_buf[env.episode_length_buf - 1] = ref_dof_pos[0, [4,6,8,5,7,9]]
+    # env.dof_pos_buf[env.episode_length_buf - 1] = asset.data.joint_pos[0, [0,6,8,1,7,9]]
+    # env.ref_dof_pos_buf[env.episode_length_buf - 1] = ref_dof_pos[0, [0,6,8,1,7,9]]
     return rew
 
 

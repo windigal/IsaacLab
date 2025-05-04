@@ -60,23 +60,26 @@ def leg_joint_idx(robot_name: str, joint_name: list[str]) -> list[int]:
             raise ValueError(f"Joint '{j}' not found in robot '{robot_name}'.")
     return indices
 
-def walk_gait_ref(phi, num_envs, action_dim, device, delta, asset, robot_name, walk_index) -> torch.Tensor:
+def walk_gait_ref(phi, num_envs, action_dim, device, asset, robot_name) -> torch.Tensor:
     ref_dof_pos = torch.zeros(num_envs, action_dim, device=device)
     joint_ids = leg_joint_idx(robot_name, ['left_hip_pitch', 'right_hip_pitch',
                                         'left_knee', 'right_knee', 
                                         'left_ankle_pitch', 'right_ankle_pitch'])
-    ref_dof_pos[:, joint_ids[0]] = trun_sin(2 * torch.pi * phi[:, 0], -0.52 - delta * 0.18, -0.02)
-    ref_dof_pos[:, joint_ids[2]] = trun_sin(2 * torch.pi * (phi[:, 0] - 1/2), 0.02, 1.02 + delta * 0.2)
-    ref_dof_pos[:, joint_ids[2]] = torch.max(ref_dof_pos[:, joint_ids[2]], asset.data.default_joint_pos[walk_index, joint_ids[2]])
-    ref_dof_pos[:, joint_ids[4]] = trun_sin(2 * torch.pi * phi[:, 0], -0.55, -0.05)
-    ref_dof_pos[:, joint_ids[4]] = torch.where(ref_dof_pos[:, joint_ids[4]] < asset.data.default_joint_pos[walk_index, joint_ids[4]], 
+    hip_default = asset.data.default_joint_pos[0, joint_ids[0]]
+    knee_default = asset.data.default_joint_pos[0, joint_ids[2]]
+    ankle_default = asset.data.default_joint_pos[0, joint_ids[4]]
+    ref_dof_pos[:, joint_ids[0]] = trun_sin(2 * torch.pi * phi[:, 0], hip_default - 0.25, hip_default + 0.25)
+    ref_dof_pos[:, joint_ids[2]] = trun_sin(2 * torch.pi * (phi[:, 0] - 1/2), knee_default - 0.5, knee_default + 0.5)
+    ref_dof_pos[:, joint_ids[2]] = torch.max(ref_dof_pos[:, joint_ids[2]], knee_default.unsqueeze(0).expand(num_envs))
+    ref_dof_pos[:, joint_ids[4]] = trun_sin(2 * torch.pi * phi[:, 0], ankle_default - 0.25, ankle_default + 0.25)
+    ref_dof_pos[:, joint_ids[4]] = torch.where(ref_dof_pos[:, joint_ids[4]] < ankle_default.unsqueeze(0).expand(num_envs), 
                                     ref_dof_pos[:, joint_ids[4]], - ref_dof_pos[:, joint_ids[0]] - ref_dof_pos[:, joint_ids[2]])
     # right foot stance phase set to default joint pos, r3, r4, r5
-    ref_dof_pos[:, joint_ids[1]] = trun_sin(2 * torch.pi * phi[:, 1], -0.52 - delta * 0.18, -0.02)
-    ref_dof_pos[:, joint_ids[3]] = trun_sin(2 * torch.pi * (phi[:, 1] - 1/2), 0.02, 1.02 + delta * 0.2)
-    ref_dof_pos[:, joint_ids[3]] = torch.max(ref_dof_pos[:, joint_ids[3]], asset.data.default_joint_pos[walk_index, joint_ids[3]])
-    ref_dof_pos[:, joint_ids[5]] = trun_sin(2 * torch.pi * phi[:, 1], -0.55, -0.05)
-    ref_dof_pos[:, joint_ids[5]] = torch.where(ref_dof_pos[:, joint_ids[5]] < asset.data.default_joint_pos[walk_index, joint_ids[5]], 
+    ref_dof_pos[:, joint_ids[1]] = trun_sin(2 * torch.pi * phi[:, 1], hip_default - 0.25, hip_default + 0.25)
+    ref_dof_pos[:, joint_ids[3]] = trun_sin(2 * torch.pi * (phi[:, 1] - 1/2), knee_default - 0.5, knee_default + 0.5)
+    ref_dof_pos[:, joint_ids[3]] = torch.max(ref_dof_pos[:, joint_ids[3]], knee_default.unsqueeze(0).expand(num_envs))
+    ref_dof_pos[:, joint_ids[5]] = trun_sin(2 * torch.pi * phi[:, 1], ankle_default - 0.25, ankle_default + 0.25)
+    ref_dof_pos[:, joint_ids[5]] = torch.where(ref_dof_pos[:, joint_ids[5]] < ankle_default.unsqueeze(0).expand(num_envs), 
                                     ref_dof_pos[:, joint_ids[5]], - ref_dof_pos[:, joint_ids[1]] - ref_dof_pos[:, joint_ids[3]])
     
     return ref_dof_pos
