@@ -13,7 +13,7 @@ from isaaclab.app import AppLauncher
 
 # local imports
 import cli_args  # isort: skip
-from isaaclab.utils import JoystickTwistCommand
+from isaaclab.utils import JoystickTwistCommand, JoystickWBCCommand
 # add argparse arguments
 parser = argparse.ArgumentParser(description="Train an RL agent with RSL-RL.")
 parser.add_argument("--video", action="store_true", default=False, help="Record videos during training.")
@@ -126,13 +126,15 @@ def main():
     # export_policy_as_onnx(
     #     ppo_runner.alg.policy, normalizer=ppo_runner.obs_normalizer, path=export_model_dir, filename="policy.onnx"
     # )
-    joystick_twist_cmd = JoystickTwistCommand()
+    print(args_cli.task)
+    if "wbc" in args_cli.task:
+        joystick = JoystickWBCCommand()
+    else:
+        joystick = JoystickTwistCommand()
     dt = env.unwrapped.physics_dt
 
     # reset environment
-    env.env.env.command_manager.change_command("base_velocity", torch.tensor([joystick_twist_cmd.x_vel_cmd, 
-                                                                       joystick_twist_cmd.y_vel_cmd, 
-                                                                       joystick_twist_cmd.yaw_vel_cmd], device=env.device))
+    env.env.env.command_manager.change_command("base_velocity", joystick.get_cmd().to(env.device))
     obs, _ = env.get_observations()
     
     timestep = 0
@@ -144,9 +146,7 @@ def main():
             # agent stepping
             actions = policy(obs)
             # env stepping
-            env.env.env.command_manager.change_command("base_velocity", torch.tensor([joystick_twist_cmd.x_vel_cmd, 
-                                                                               joystick_twist_cmd.y_vel_cmd, 
-                                                                               joystick_twist_cmd.yaw_vel_cmd], device=env.device))
+            env.env.env.command_manager.change_command("base_velocity", joystick.get_cmd().to(env.device))
             obs, _, _, _ = env.step(actions)
         if args_cli.video:
             timestep += 1

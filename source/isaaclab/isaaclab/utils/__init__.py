@@ -11,7 +11,7 @@ from .configclass import configclass
 from .dict import *
 from .interpolation import *
 from .modifiers import *
-from .string import *
+from .str import *
 from .timer import Timer
 from .types import *
 from .joystick import *

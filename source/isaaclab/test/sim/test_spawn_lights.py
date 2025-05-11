@@ -20,7 +20,7 @@ from isaacsim.core.api.simulation_context import SimulationContext
 from pxr import UsdLux
 
 import isaaclab.sim as sim_utils
-from isaaclab.utils.string import to_camel_case
+from isaaclab.utils.str import to_camel_case
 
 
 class TestSpawningLights(unittest.TestCase):

@@ -20,7 +20,7 @@ from pxr import PhysxSchema, UsdPhysics
 
 import isaaclab.sim as sim_utils
 import isaaclab.utils.math as math_utils
-import isaaclab.utils.string as string_utils
+import isaaclab.utils.str as string_utils
 from isaaclab.actuators import ActuatorBase, ActuatorBaseCfg, ImplicitActuator
 from isaaclab.utils.types import ArticulationActions
 

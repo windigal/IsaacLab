@@ -315,6 +315,11 @@ class HumanoidWholeBodyControlCommand(UniformVelocityCommand):
         msg += f"\tHeading command: {self.cfg.heading_command}\n"
         return msg
 
+    def _change(self, command: torch.Tensor):
+        # update the command
+        self.vel_command_b[:] = command[:3]
+        self.gait[:] = command[3:4]
+        self.phi_stance[:] = command[4:5]
     """
     Properties
     """

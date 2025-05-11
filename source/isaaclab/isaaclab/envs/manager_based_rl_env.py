@@ -241,9 +241,9 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
         # -- compute observations
         # note: done after reset to get the correct observations for reset envs
         self.obs_buf = self.observation_manager.compute()
-        # draw_num = 500
+        # draw_num = 160
         # if self.episode_length_buf[0] == draw_num:
-        #     self.draw(draw_num, "track_g1")
+        #     self._draw(draw_num, "track_leju_jump_ref")
         #     exit()
         # return observations, rewards, resets and extras
         return self.obs_buf, self.reward_buf, self.reset_terminated, self.reset_time_outs, self.extras
@@ -406,38 +406,42 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
         self.feet_height = torch.zeros((self.scene.num_envs, 2), device=self.device)
         self.dof_pos_buf = torch.zeros((2001, 6), device=self.device)
         self.ref_dof_pos_buf = torch.zeros((2001, 6), device=self.device)
+        from collections import deque
+        self.dof_pos_history = deque(maxlen=int(self.cycle_steps / 2))
         
-    def draw(self, num, name):
+    def _draw(self, num, name):
         import matplotlib.pyplot as plt
         fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(15, 10))
-        fig.suptitle('Pos track', fontsize=16)
-        x = np.linspace(0, 20, num)
-        axes[0,0].plot(x, self.dof_pos_buf[:num, 0].cpu())
-        axes[0,0].plot(x, self.ref_dof_pos_buf[:num, 0].cpu())
-        # axes.set_title('leg_l4_joint')
+        fig.suptitle('Jump joint pos track', fontsize=30)
         
-        axes[0,1].plot(x, self.dof_pos_buf[:num, 1].cpu())
-        axes[0,1].plot(x, self.ref_dof_pos_buf[:num, 1].cpu())
-        # axes.set_title('leg_l5_joint')
-        
-        axes[0,2].plot(x, self.dof_pos_buf[:num, 2].cpu())
-        axes[0,2].plot(x, self.ref_dof_pos_buf[:num, 2].cpu())
-        # axes.set_title('leg_l6_joint')
-        
-        axes[1,0].plot(x, self.dof_pos_buf[:num, 3].cpu())
-        axes[1,0].plot(x, self.ref_dof_pos_buf[:num, 3].cpu())
-        # axes.set_title('leg_r4_joint')
-        
-        axes[1,1].plot(x, self.dof_pos_buf[:num, 4].cpu())
-        axes[1,1].plot(x, self.ref_dof_pos_buf[:num, 4].cpu())
-        # axes.set_title('leg_r5_joint')
-        
-        axes[1,2].plot(x, self.dof_pos_buf[:num, 5].cpu())
-        axes[1,2].plot(x, self.ref_dof_pos_buf[:num, 5].cpu())
-        # axes.set_title('leg_r6_joint')
-        
+        x = np.linspace(0, num * 0.01, num)
+
+        axes[0,0].plot(x, self.dof_pos_buf[:num, 0].cpu(), color="blue", label="actual")
+        axes[0,0].plot(x, self.ref_dof_pos_buf[:num, 0].cpu(), color="red", label="reference")
+        axes[0,0].set_title('Left hip pitch', fontsize=18)
+
+        axes[0,1].plot(x, self.dof_pos_buf[:num, 1].cpu(), color="blue")
+        axes[0,1].plot(x, self.ref_dof_pos_buf[:num, 1].cpu(), color="red")
+        axes[0,1].set_title('Left knee', fontsize=18)
+
+        axes[0,2].plot(x, self.dof_pos_buf[:num, 2].cpu(), color="blue")
+        axes[0,2].plot(x, self.ref_dof_pos_buf[:num, 2].cpu(), color="red")
+        axes[0,2].set_title('Left ankle pitch', fontsize=18)
+
+        axes[1,0].plot(x, self.dof_pos_buf[:num, 3].cpu(), color="blue")
+        axes[1,0].plot(x, self.ref_dof_pos_buf[:num, 3].cpu(), color="red")
+        axes[1,0].set_title('Right hip pitch', fontsize=18)
+
+        axes[1,1].plot(x, self.dof_pos_buf[:num, 4].cpu(), color="blue")
+        axes[1,1].plot(x, self.ref_dof_pos_buf[:num, 4].cpu(), color="red")
+        axes[1,1].set_title('Right knee', fontsize=18)
+
+        axes[1,2].plot(x, self.dof_pos_buf[:num, 5].cpu(), color="blue")
+        axes[1,2].plot(x, self.ref_dof_pos_buf[:num, 5].cpu(), color="red")
+        axes[1,2].set_title('Right ankle pitch', fontsize=18)
+        fig.legend(['Actual', 'Reference'], loc='upper right', ncol=2, fontsize=15, frameon=False)
         plt.tight_layout()
-        plt.subplots_adjust(top=0.9)
+        plt.subplots_adjust(top=0.87)
         plt.savefig(f"./imgs/{name}.png")
         self.dof_pos_buf = torch.zeros((2001, 6), device=self.device)
         self.ref_dof_pos_buf = torch.zeros((2001, 6), device=self.device)

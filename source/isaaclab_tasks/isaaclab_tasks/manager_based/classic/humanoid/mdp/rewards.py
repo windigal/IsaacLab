@@ -9,7 +9,7 @@ import torch
 from typing import TYPE_CHECKING
 
 import isaaclab.utils.math as math_utils
-import isaaclab.utils.string as string_utils
+import isaaclab.utils.str as string_utils
 from isaaclab.assets import Articulation
 from isaaclab.managers import ManagerTermBase, RewardTermCfg, SceneEntityCfg
 

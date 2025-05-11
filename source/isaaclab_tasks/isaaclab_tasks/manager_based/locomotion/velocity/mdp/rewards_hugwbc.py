@@ -34,6 +34,7 @@ def compute_ref_state_wbc(env: ManagerBasedRLEnv, command_name: str, asset_cfg: 
     walk_index = (gait == 0).nonzero(as_tuple=True)[0]
     run_index = (gait == 1).nonzero(as_tuple=True)[0]
     jump_index = (gait == 2).nonzero(as_tuple=True)[0]
+    stand_index = (gait == 3).nonzero(as_tuple=True)[0]
     # walk test
     if walk_index.shape[0] != 0:
         ref_dof_pos[walk_index] = walk_gait_ref(phi[walk_index], walk_index.shape[0], sum(env.action_manager.action_term_dim), 
@@ -50,6 +51,10 @@ def compute_ref_state_wbc(env: ManagerBasedRLEnv, command_name: str, asset_cfg: 
         coefficient = 2 - vel_x[jump_index] / 1.5
         ref_dof_pos[jump_index] = jump_gait_ref(phi[jump_index], jump_index.shape[0], sum(env.action_manager.action_term_dim), 
                                                 env.device, robot_name) / coefficient.unsqueeze(1)
+    
+    # stand test
+    if jump_index.shape[0] != 0:
+        ref_dof_pos[stand_index] = asset.data.default_joint_pos[stand_index]
 
     return ref_dof_pos.to(device=env.device)
 
@@ -114,8 +119,8 @@ def Foot_Swing_Tracking(env: ManagerBasedRLEnv,
     diff = asset.data.joint_pos[:, asset_cfg.joint_ids] - ref_dof_pos
     # 计算奖励
     rew = torch.exp(-2 * torch.norm(diff, dim=1)) - 0.2 * torch.norm(diff, dim=1).clamp(0, 0.5)
-    # env.dof_pos_buf[env.episode_length_buf - 1] = asset.data.joint_pos[0, [4,6,8,5,7,9]]
-    # env.ref_dof_pos_buf[env.episode_length_buf - 1] = ref_dof_pos[0, [4,6,8,5,7,9]]
+    env.dof_pos_buf[env.episode_length_buf - 1] = asset.data.joint_pos[0, [4,6,8,5,7,9]]
+    env.ref_dof_pos_buf[env.episode_length_buf - 1] = ref_dof_pos[0, [4,6,8,5,7,9]]
     # env.dof_pos_buf[env.episode_length_buf - 1] = asset.data.joint_pos[0, [0,6,8,1,7,9]]
     # env.ref_dof_pos_buf[env.episode_length_buf - 1] = ref_dof_pos[0, [0,6,8,1,7,9]]
     return rew
@@ -211,12 +216,25 @@ def Hip_Joint_Deviation(env: ManagerBasedRLEnv,
 
 def Feet_Symmetry(env: ManagerBasedRLEnv, command_name: str, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")):
     '''
-    在双脚相位一致时鼓励对称性
+    在双脚相位一致时鼓励对称性, 对于行走步态, 要求左右脚在相同相位时保持一致
     '''
+    rew = torch.zeros(env.scene.num_envs, device=env.device)
     phi = mdp.phi(env, command_name=command_name)
     asset: Articulation = env.scene[asset_cfg.name]
-    foot_pos = asset.data.body_com_pos_w[:, asset_cfg.body_ids, :2]   
-    foot_dist = torch.norm(foot_pos[:, 0, :] - foot_pos[:, 1, :], dim=1) 
-    rew = foot_dist * (phi[:, 0] == phi[:, 1]).float()
+    joint_pos = asset.data.joint_pos[:, asset_cfg.joint_ids]
+    env.dof_pos_history.append(joint_pos.clone())
+    gait = env.command_manager.get_command(command_name)[:, 3]
+    walk_run_index = ((gait == 0) | (gait == 1)).nonzero(as_tuple=True)[0]
+    jump_stand_index = ((gait == 2) | (gait == 3)).nonzero(as_tuple=True)[0]
+    # foot_pos = asset.data.body_com_pos_w[jump_stand_index, asset_cfg.body_ids, :2]   
+    # foot_dist = torch.norm(foot_pos[jump_stand_index, 0, :] - foot_pos[jump_stand_index, 1, :], dim=1)
+    if jump_stand_index.shape[0] != 0:
+        jump_joint_pos = joint_pos[jump_stand_index]
+        jump_joint_pos_swap = jump_joint_pos.reshape(jump_joint_pos.shape[0], -1, 2)[:, :, [1, 0]].reshape(jump_joint_pos.shape[0], -1)
+        dist = torch.norm(jump_joint_pos_swap - jump_joint_pos, dim=1)
+        rew[jump_stand_index] = dist * (phi[jump_stand_index, 0] == phi[jump_stand_index, 1]).float()
+    if walk_run_index.shape[0] != 0:
+        half_period_pos = env.dof_pos_history[0].clone()[walk_run_index]
+        half_period_pos_swap = half_period_pos.reshape(half_period_pos.shape[0], -1, 2)[:, :, [1, 0]].reshape(half_period_pos.shape[0], -1)
+        rew[walk_run_index] = torch.norm(half_period_pos_swap - joint_pos[walk_run_index], dim=1)
     return rew
-

@@ -25,7 +25,7 @@ try:
 except ModuleNotFoundError:
     from pxr import Semantics
 
-from isaaclab.utils.string import to_camel_case
+from isaaclab.utils.str import to_camel_case
 
 from . import schemas
 

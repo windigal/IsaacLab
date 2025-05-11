@@ -13,7 +13,7 @@ import omni.log
 from pxr import UsdPhysics
 
 import isaaclab.utils.math as math_utils
-import isaaclab.utils.string as string_utils
+import isaaclab.utils.str as string_utils
 from isaaclab.assets.articulation import Articulation
 from isaaclab.controllers.differential_ik import DifferentialIKController
 from isaaclab.controllers.operational_space import OperationalSpaceController

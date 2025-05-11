@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 import omni.log
 
-import isaaclab.utils.string as string_utils
+import isaaclab.utils.str as string_utils
 from isaaclab.assets.articulation import Articulation
 from isaaclab.managers.action_manager import ActionTerm
 from isaaclab.utils.math import euler_xyz_from_quat

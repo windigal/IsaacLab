@@ -20,7 +20,7 @@ from isaacsim.core.api.simulation_context import SimulationContext
 
 import isaaclab.sim as sim_utils
 from isaaclab.sim.spawners.sensors.sensors import CUSTOM_FISHEYE_CAMERA_ATTRIBUTES, CUSTOM_PINHOLE_CAMERA_ATTRIBUTES
-from isaaclab.utils.string import to_camel_case
+from isaaclab.utils.str import to_camel_case
 
 
 class TestSpawningSensors(unittest.TestCase):

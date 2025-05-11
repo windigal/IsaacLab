@@ -28,6 +28,10 @@ Check joint_names: `source/isaaclab/isaaclab/envs/mdp/observations.py:121 line`
 - - `python ./scripts/reinforcement_learning/rsl_rl/play.py --task Isaac-Velocity-Flat-leju-v2 --num_envs 1 --device=cpu`
 - - `python ./scripts/reinforcement_learning/rsl_rl/play.py --task Isaac-Velocity-Flat-leju-wbc --num_envs 1 --device=cpu`
 - - `python ./scripts/reinforcement_learning/rsl_rl/play.py --task Isaac-Velocity-Flat-G1-wbc --num_envs 1 --device=cpu`
+- evaluate with joystick control
+- - `python ./scripts/reinforcement_learning/rsl_rl/play_joystick.py --task Isaac-Velocity-Flat-leju-v2 --num_envs 1 --device=cpu`
+- - `python ./scripts/reinforcement_learning/rsl_rl/play_joystick.py --task Isaac-Velocity-Flat-leju-wbc --num_envs 1 --device=cpu`
+- - `python ./scripts/reinforcement_learning/rsl_rl/play_joystick.py --task Isaac-Velocity-Flat-G1-wbc --num_envs 1 --device=cpu`
 - tensorboard: `tensorboard --logdir=logs\rsl_rl\leju_flat\{timestamp}`
 
 # Update Infos

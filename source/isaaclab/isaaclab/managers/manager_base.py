@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any
 import omni.log
 import omni.timeline
 
-import isaaclab.utils.string as string_utils
+import isaaclab.utils.str as string_utils
 from isaaclab.utils import string_to_callable
 
 from .manager_term_cfg import ManagerTermBaseCfg

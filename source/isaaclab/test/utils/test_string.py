@@ -18,7 +18,7 @@ simulation_app = app_launcher.app
 import random
 import unittest
 
-import isaaclab.utils.string as string_utils
+import isaaclab.utils.str as string_utils
 
 
 class TestStringUtilities(unittest.TestCase):

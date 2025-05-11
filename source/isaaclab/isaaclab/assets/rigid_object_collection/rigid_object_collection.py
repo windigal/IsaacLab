@@ -19,7 +19,7 @@ from pxr import UsdPhysics
 
 import isaaclab.sim as sim_utils
 import isaaclab.utils.math as math_utils
-import isaaclab.utils.string as string_utils
+import isaaclab.utils.str as string_utils
 
 from ..asset_base import AssetBase
 from .rigid_object_collection_data import RigidObjectCollectionData

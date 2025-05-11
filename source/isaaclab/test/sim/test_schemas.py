@@ -23,7 +23,7 @@ from pxr import UsdPhysics
 import isaaclab.sim.schemas as schemas
 from isaaclab.sim.utils import find_global_fixed_joint_prim
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
-from isaaclab.utils.string import to_camel_case
+from isaaclab.utils.str import to_camel_case
 
 
 class TestPhysicsSchema(unittest.TestCase):
