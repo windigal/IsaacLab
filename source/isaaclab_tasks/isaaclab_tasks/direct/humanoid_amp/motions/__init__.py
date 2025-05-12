@@ -8,3 +8,7 @@ AMP Motion Loader and motion files.
 """
 
 from .motion_loader import MotionLoader
+<<<<<<< HEAD
+=======
+from .motion_viewer import MotionViewer
+>>>>>>> upstream/main

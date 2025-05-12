@@ -100,6 +100,9 @@ reportOptionalIterable = "none"
 reportIndexIssue = "none"
 reportOptionalOperand = "none"
 reportOptionalCall = "none"
+reportOptionalMemberAccess = "warning" # -> raises 8 errors
+reportPrivateUsage = "warning"
+
 
 [tool.codespell]
 skip = '*.usd,*.svg,*.png,_isaac_sim*,*.bib,*.css,*/_build'

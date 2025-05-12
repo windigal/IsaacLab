@@ -126,7 +126,11 @@ obtain the contact information. Additional flags can be set to obtain more infor
 the contact, such as the contact air time, contact forces between filtered prims, etc.
 
 In this tutorial, we attach the contact sensor to the feet of the robot. The feet of the robot are
+<<<<<<< HEAD
 named ``"LF_FOOT"``, ``"RF_FOOT"``, ``"LH_FOOT"``, and ``"RF_FOOT"``. We pass a Regex expression
+=======
+named ``"LF_FOOT"``, ``"RF_FOOT"``, ``"LH_FOOT"``, and ``"RH_FOOT"``. We pass a Regex expression
+>>>>>>> upstream/main
 ``".*_FOOT"`` to simplify the prim path specification. This Regex expression matches all prims that
 end with ``"_FOOT"``.
 

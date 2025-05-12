@@ -56,7 +56,11 @@ def main():
     policy_path = os.path.abspath(args_cli.checkpoint)
     file_content = omni.client.read_file(policy_path)[2]
     file = io.BytesIO(memoryview(file_content).tobytes())
+<<<<<<< HEAD
     policy = torch.jit.load(file)
+=======
+    policy = torch.jit.load(file, map_location=args_cli.device)
+>>>>>>> upstream/main
 
     # setup environment
     env_cfg = H1RoughEnvCfg_PLAY()

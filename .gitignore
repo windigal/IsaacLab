@@ -63,3 +63,5 @@ _build
 
 # imgs
 **/imgs/*
+# Teleop Recorded Dataset
+datasets

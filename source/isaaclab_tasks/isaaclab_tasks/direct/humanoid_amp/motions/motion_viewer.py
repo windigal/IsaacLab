@@ -10,7 +10,15 @@ import numpy as np
 import torch
 
 import mpl_toolkits.mplot3d  # noqa: F401
+<<<<<<< HEAD
 from motion_loader import MotionLoader
+=======
+
+try:
+    from .motion_loader import MotionLoader
+except ImportError:
+    from motion_loader import MotionLoader
+>>>>>>> upstream/main
 
 
 class MotionViewer:

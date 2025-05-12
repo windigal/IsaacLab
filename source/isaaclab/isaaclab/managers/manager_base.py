@@ -16,7 +16,7 @@ import omni.log
 import omni.timeline
 
 import isaaclab.utils.str as string_utils
-from isaaclab.utils import string_to_callable
+from isaaclab.utils import class_to_dict, string_to_callable
 
 from .manager_term_cfg import ManagerTermBaseCfg
 from .scene_entity_cfg import SceneEntityCfg
@@ -79,6 +79,14 @@ class ManagerTermBase(ABC):
         """Device on which to perform computations."""
         return self._env.device
 
+<<<<<<< HEAD
+=======
+    @property
+    def __name__(self) -> str:
+        """Return the name of the class or subclass."""
+        return self.__class__.__name__
+
+>>>>>>> upstream/main
     """
     Operations.
     """
@@ -92,6 +100,13 @@ class ManagerTermBase(ABC):
         """
         pass
 
+<<<<<<< HEAD
+=======
+    def serialize(self) -> dict:
+        """General serialization call. Includes the configuration dict."""
+        return {"cfg": class_to_dict(self.cfg)}
+
+>>>>>>> upstream/main
     def __call__(self, *args) -> Any:
         """Returns the value of the term required by the manager.
 

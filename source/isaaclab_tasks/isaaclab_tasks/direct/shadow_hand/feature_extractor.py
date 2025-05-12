@@ -175,14 +175,22 @@ class FeatureExtractor:
                     pose_loss.backward()
                     self.optimizer.step()
 
+<<<<<<< HEAD
                     self.step_count += 1
 
+=======
+>>>>>>> upstream/main
                     if self.step_count % 50000 == 0:
                         torch.save(
                             self.feature_extractor.state_dict(),
                             os.path.join(self.log_dir, f"cnn_{self.step_count}_{pose_loss.detach().cpu().numpy()}.pth"),
                         )
 
+<<<<<<< HEAD
+=======
+                    self.step_count += 1
+
+>>>>>>> upstream/main
                     return pose_loss, predicted_pose
         else:
             img_input = torch.cat((rgb_img, depth_img, segmentation_img), dim=-1)

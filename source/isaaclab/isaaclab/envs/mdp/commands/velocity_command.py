@@ -21,7 +21,11 @@ from isaaclab.markers import VisualizationMarkers
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedEnv
 
+<<<<<<< HEAD
     from .commands_cfg import NormalVelocityCommandCfg, UniformVelocityCommandCfg, HumanoidWholeBodyControlCommandCfg
+=======
+    from .commands_cfg import NormalVelocityCommandCfg, UniformVelocityCommandCfg
+>>>>>>> upstream/main
 
 
 class UniformVelocityCommand(CommandTerm):
@@ -102,7 +106,10 @@ class UniformVelocityCommand(CommandTerm):
     @property
     def command(self) -> torch.Tensor:
         """The desired base velocity command in the base frame. Shape is (num_envs, 3)."""
+<<<<<<< HEAD
 
+=======
+>>>>>>> upstream/main
         return self.vel_command_b
 
     """
@@ -160,10 +167,13 @@ class UniformVelocityCommand(CommandTerm):
         standing_env_ids = self.is_standing_env.nonzero(as_tuple=False).flatten()
         self.vel_command_b[standing_env_ids, :] = 0.0
 
+<<<<<<< HEAD
     def _change(self, command: torch.Tensor):
         # update the command
         self.vel_command_b[:] = command
         
+=======
+>>>>>>> upstream/main
     def _set_debug_vis_impl(self, debug_vis: bool):
         # set visibility of markers
         # note: parent only deals with callbacks. not their visibility
@@ -290,6 +300,7 @@ class NormalVelocityCommand(UniformVelocityCommand):
         self.vel_command_b[zero_vel_x_env_ids, 0] = 0.0
         self.vel_command_b[zero_vel_y_env_ids, 1] = 0.0
         self.vel_command_b[zero_vel_yaw_env_ids, 2] = 0.0
+<<<<<<< HEAD
 
 
 class HumanoidWholeBodyControlCommand(UniformVelocityCommand):
@@ -365,3 +376,5 @@ class HumanoidWholeBodyControlCommand(UniformVelocityCommand):
         
         self.phi_stance[env_ids, :] = 0.5
         # self.phi_stance[run_env_ids, 0] = 0.5 - 0.3 * (torch.norm(self.vel_command_b[run_env_ids, :3], dim=1) - 1.0)
+=======
+>>>>>>> upstream/main
