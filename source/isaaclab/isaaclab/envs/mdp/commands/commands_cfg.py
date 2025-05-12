@@ -14,11 +14,7 @@ from isaaclab.utils import configclass
 from .null_command import NullCommand
 from .pose_2d_command import TerrainBasedPose2dCommand, UniformPose2dCommand
 from .pose_command import UniformPoseCommand
-<<<<<<< HEAD
 from .velocity_command import NormalVelocityCommand, UniformVelocityCommand, HumanoidWholeBodyControlCommand
-=======
-from .velocity_command import NormalVelocityCommand, UniformVelocityCommand
->>>>>>> upstream/main
 
 
 @configclass
@@ -250,7 +246,6 @@ class TerrainBasedPose2dCommandCfg(UniformPose2dCommandCfg):
 
     ranges: Ranges = MISSING
     """Distribution ranges for the sampled commands."""
-<<<<<<< HEAD
 
 
 @configclass
@@ -303,5 +298,3 @@ class HumanoidWholeBodyControlCommandCfg(UniformVelocityCommandCfg):
     # Set the scale of the visualization markers to (0.5, 0.5, 0.5)
     goal_vel_visualizer_cfg.markers["arrow"].scale = (0.5, 0.5, 0.5)
     current_vel_visualizer_cfg.markers["arrow"].scale = (0.5, 0.5, 0.5)
-=======
->>>>>>> upstream/main

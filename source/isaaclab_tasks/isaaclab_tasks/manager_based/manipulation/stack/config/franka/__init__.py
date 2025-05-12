@@ -7,17 +7,11 @@ import os
 
 from . import (
     agents,
-<<<<<<< HEAD
-    stack_ik_rel_blueprint_env_cfg,
-    stack_ik_rel_env_cfg,
-    stack_ik_rel_instance_randomize_env_cfg,
-=======
     stack_ik_abs_env_cfg,
     stack_ik_rel_blueprint_env_cfg,
     stack_ik_rel_env_cfg,
     stack_ik_rel_instance_randomize_env_cfg,
     stack_ik_rel_visuomotor_env_cfg,
->>>>>>> upstream/main
     stack_joint_pos_env_cfg,
     stack_joint_pos_instance_randomize_env_cfg,
 )
@@ -64,8 +58,6 @@ gym.register(
 )
 
 gym.register(
-<<<<<<< HEAD
-=======
     id="Isaac-Stack-Cube-Franka-IK-Rel-Visuomotor-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     kwargs={
@@ -86,7 +78,6 @@ gym.register(
 )
 
 gym.register(
->>>>>>> upstream/main
     id="Isaac-Stack-Cube-Instance-Randomize-Franka-IK-Rel-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     kwargs={

@@ -377,7 +377,6 @@ G1_CFG = ArticulationCfg(
         ),
     },
 )
-<<<<<<< HEAD
 
 G1_WBC_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
@@ -451,19 +450,14 @@ G1_WBC_CFG = ArticulationCfg(
         )}
 )
 
-=======
->>>>>>> upstream/main
 """Configuration for the Unitree G1 Humanoid robot."""
 
 
 G1_MINIMAL_CFG = G1_CFG.copy()
 G1_MINIMAL_CFG.spawn.usd_path = f"{ISAACLAB_NUCLEUS_DIR}/Robots/Unitree/G1/g1_minimal.usd"
-<<<<<<< HEAD
 
 G1_WBC_MINIMAL_CFG = G1_WBC_CFG.copy()
 G1_WBC_MINIMAL_CFG.spawn.usd_path = "./models/Unitree/G1/g1_lock_arm_minimal.usd"
-=======
->>>>>>> upstream/main
 """Configuration for the Unitree G1 Humanoid robot with fewer collision meshes.
 
 This configuration removes most collision meshes to speed up simulation.

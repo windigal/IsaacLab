@@ -12,10 +12,7 @@ from .ant import *
 from .anymal import *
 from .cart_double_pendulum import *
 from .cartpole import *
-<<<<<<< HEAD
-=======
 from .fourier import *
->>>>>>> upstream/main
 from .franka import *
 from .humanoid import *
 from .humanoid_28 import *
@@ -27,7 +24,4 @@ from .shadow_hand import *
 from .spot import *
 from .unitree import *
 from .universal_robots import *
-<<<<<<< HEAD
 from .leju import *
-=======
->>>>>>> upstream/main

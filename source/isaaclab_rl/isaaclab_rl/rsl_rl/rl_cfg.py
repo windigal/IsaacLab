@@ -3,18 +3,13 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-<<<<<<< HEAD
-=======
 from __future__ import annotations
 
->>>>>>> upstream/main
 from dataclasses import MISSING
 from typing import Literal
 
 from isaaclab.utils import configclass
 
-<<<<<<< HEAD
-=======
 from .distillation_cfg import RslRlDistillationAlgorithmCfg, RslRlDistillationStudentTeacherCfg
 from .rnd_cfg import RslRlRndCfg
 from .symmetry_cfg import RslRlSymmetryCfg
@@ -23,7 +18,6 @@ from .symmetry_cfg import RslRlSymmetryCfg
 # Policy configurations #
 #########################
 
->>>>>>> upstream/main
 
 @configclass
 class RslRlPpoActorCriticCfg:
@@ -35,12 +29,9 @@ class RslRlPpoActorCriticCfg:
     init_noise_std: float = MISSING
     """The initial noise standard deviation for the policy."""
 
-<<<<<<< HEAD
-=======
     noise_std_type: Literal["scalar", "log"] = "scalar"
     """The type of noise standard deviation for the policy. Default is scalar."""
 
->>>>>>> upstream/main
     actor_hidden_dims: list[int] = MISSING
     """The hidden dimensions of the actor network."""
 
@@ -52,8 +43,6 @@ class RslRlPpoActorCriticCfg:
 
 
 @configclass
-<<<<<<< HEAD
-=======
 class RslRlPpoActorCriticRecurrentCfg(RslRlPpoActorCriticCfg):
     """Configuration for the PPO actor-critic networks with recurrent layers."""
 
@@ -76,28 +65,12 @@ class RslRlPpoActorCriticRecurrentCfg(RslRlPpoActorCriticCfg):
 
 
 @configclass
->>>>>>> upstream/main
 class RslRlPpoAlgorithmCfg:
     """Configuration for the PPO algorithm."""
 
     class_name: str = "PPO"
     """The algorithm class name. Default is PPO."""
 
-<<<<<<< HEAD
-    value_loss_coef: float = MISSING
-    """The coefficient for the value loss."""
-
-    use_clipped_value_loss: bool = MISSING
-    """Whether to use clipped value loss."""
-
-    clip_param: float = MISSING
-    """The clipping parameter for the policy."""
-
-    entropy_coef: float = MISSING
-    """The coefficient for the entropy loss."""
-
-=======
->>>>>>> upstream/main
     num_learning_epochs: int = MISSING
     """The number of learning epochs per update."""
 
@@ -116,22 +89,14 @@ class RslRlPpoAlgorithmCfg:
     lam: float = MISSING
     """The lambda parameter for Generalized Advantage Estimation (GAE)."""
 
-<<<<<<< HEAD
-=======
     entropy_coef: float = MISSING
     """The coefficient for the entropy loss."""
 
->>>>>>> upstream/main
     desired_kl: float = MISSING
     """The desired KL divergence."""
 
     max_grad_norm: float = MISSING
     """The maximum gradient norm."""
-<<<<<<< HEAD
-    
-    symmetry_cfg: dict = None
-    """The symmetry configuration."""
-=======
 
     value_loss_coef: float = MISSING
     """The coefficient for the value loss."""
@@ -161,7 +126,6 @@ class RslRlPpoAlgorithmCfg:
 #########################
 # Runner configurations #
 #########################
->>>>>>> upstream/main
 
 
 @configclass
@@ -183,20 +147,6 @@ class RslRlOnPolicyRunnerCfg:
     empirical_normalization: bool = MISSING
     """Whether to use empirical normalization."""
 
-<<<<<<< HEAD
-    policy: RslRlPpoActorCriticCfg = MISSING
-    """The policy configuration."""
-
-    algorithm: RslRlPpoAlgorithmCfg = MISSING
-    """The algorithm configuration."""
-
-    clip_actions: float | None = None
-    """The clipping value for actions. If ``None``, then no clipping is done."""
-
-    ##
-    # Checkpointing parameters
-    ##
-=======
     policy: RslRlPpoActorCriticCfg | RslRlDistillationStudentTeacherCfg = MISSING
     """The policy configuration."""
 
@@ -209,7 +159,6 @@ class RslRlOnPolicyRunnerCfg:
     .. note::
         This clipping is performed inside the :class:`RslRlVecEnvWrapper` wrapper.
     """
->>>>>>> upstream/main
 
     save_interval: int = MISSING
     """The number of iterations between saves."""
@@ -225,13 +174,6 @@ class RslRlOnPolicyRunnerCfg:
     ``{time-stamp}_{run_name}``.
     """
 
-<<<<<<< HEAD
-    ##
-    # Logging parameters
-    ##
-
-=======
->>>>>>> upstream/main
     logger: Literal["tensorboard", "neptune", "wandb"] = "tensorboard"
     """The logger to use. Default is tensorboard."""
 
@@ -241,13 +183,6 @@ class RslRlOnPolicyRunnerCfg:
     wandb_project: str = "isaaclab"
     """The wandb project name. Default is "isaaclab"."""
 
-<<<<<<< HEAD
-    ##
-    # Loading parameters
-    ##
-
-=======
->>>>>>> upstream/main
     resume: bool = False
     """Whether to resume. Default is False."""
 
