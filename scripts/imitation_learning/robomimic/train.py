@@ -150,10 +150,6 @@ def train(config: Config, device: str, log_dir: str, ckpt_dir: str, video_dir: s
     print("\n============= New Training Run with Config =============")
     print(config)
     print("")
-<<<<<<< HEAD
-    log_dir, ckpt_dir, video_dir = TrainUtils.get_exp_dir(config)
-=======
->>>>>>> upstream/main
 
     print(f">>> Saving logs into directory: {log_dir}")
     print(f">>> Saving checkpoints into directory: {ckpt_dir}")
@@ -348,17 +344,12 @@ def train(config: Config, device: str, log_dir: str, ckpt_dir: str, video_dir: s
     data_logger.close()
 
 
-<<<<<<< HEAD
-def main(args):
-    """Train a model on a task using a specified algorithm."""
-=======
 def main(args: argparse.Namespace):
     """Train a model on a task using a specified algorithm.
 
     Args:
         args: Command line arguments.
     """
->>>>>>> upstream/main
     # load config
     if args.task is not None:
         # obtain the configuration entry point
@@ -394,14 +385,11 @@ def main(args: argparse.Namespace):
     # change location of experiment directory
     config.train.output_dir = os.path.abspath(os.path.join("./logs", args.log_dir, args.task))
 
-<<<<<<< HEAD
-=======
     log_dir, ckpt_dir, video_dir = TrainUtils.get_exp_dir(config)
 
     if args.normalize_training_actions:
         config.train.data = normalize_hdf5_actions(config, log_dir)
 
->>>>>>> upstream/main
     # get torch device
     device = TorchUtils.get_torch_device(try_to_use_cuda=config.train.cuda)
 
@@ -410,11 +398,7 @@ def main(args: argparse.Namespace):
     # catch error during training and print it
     res_str = "finished run successfully!"
     try:
-<<<<<<< HEAD
-        train(config, device=device)
-=======
         train(config, device, log_dir, ckpt_dir, video_dir)
->>>>>>> upstream/main
     except Exception as e:
         res_str = f"run failed with error:\n{e}\n\n{traceback.format_exc()}"
     print(res_str)
@@ -442,10 +426,7 @@ if __name__ == "__main__":
     parser.add_argument("--task", type=str, default=None, help="Name of the task.")
     parser.add_argument("--algo", type=str, default=None, help="Name of the algorithm.")
     parser.add_argument("--log_dir", type=str, default="robomimic", help="Path to log directory")
-<<<<<<< HEAD
-=======
     parser.add_argument("--normalize_training_actions", action="store_true", default=False, help="Normalize actions")
->>>>>>> upstream/main
 
     args = parser.parse_args()
 

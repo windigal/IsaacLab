@@ -44,11 +44,7 @@ EXTRAS_REQUIRE = {
     "sb3": ["stable-baselines3>=2.1"],
     "skrl": ["skrl>=1.4.2"],
     "rl-games": ["rl-games==1.6.1", "gym"],  # rl-games still needs gym :(
-<<<<<<< HEAD
-    "rsl-rl": ["rsl-rl-lib>=2.1.1"],
-=======
     "rsl-rl": ["rsl-rl-lib==2.3.1"],
->>>>>>> upstream/main
 }
 # Add the names with hyphens as aliases for convenience
 EXTRAS_REQUIRE["rl_games"] = EXTRAS_REQUIRE["rl-games"]

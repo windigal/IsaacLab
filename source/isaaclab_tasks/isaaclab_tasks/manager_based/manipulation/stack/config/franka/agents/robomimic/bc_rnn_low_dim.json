@@ -1,11 +1,7 @@
 {
     "algo_name": "bc",
     "experiment": {
-<<<<<<< HEAD
-        "name": "bc",
-=======
         "name": "bc_rnn_low_dim_franka_stack",
->>>>>>> upstream/main
         "validate": false,
         "logging": {
             "terminal_output_to_txt": true,

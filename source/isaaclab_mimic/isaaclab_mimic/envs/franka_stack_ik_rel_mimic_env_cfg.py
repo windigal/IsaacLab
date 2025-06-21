@@ -30,10 +30,7 @@ class FrankaCubeStackIKRelMimicEnvCfg(FrankaCubeStackEnvCfg, MimicEnvCfg):
         self.datagen_config.generation_select_src_per_subtask = True
         self.datagen_config.generation_transform_first_robot_pose = False
         self.datagen_config.generation_interpolate_from_last_target_pose = True
-<<<<<<< HEAD
-=======
         self.datagen_config.generation_relative = True
->>>>>>> upstream/main
         self.datagen_config.max_num_failures = 25
         self.datagen_config.seed = 1
 
@@ -61,11 +58,8 @@ class FrankaCubeStackIKRelMimicEnvCfg(FrankaCubeStackEnvCfg, MimicEnvCfg):
                 num_fixed_steps=0,
                 # If True, apply action noise during the interpolation phase and execution
                 apply_noise_during_interpolation=False,
-<<<<<<< HEAD
-=======
                 description="Grasp red cube",
                 next_subtask_description="Stack red cube on top of blue cube",
->>>>>>> upstream/main
             )
         )
         subtask_configs.append(
@@ -88,10 +82,7 @@ class FrankaCubeStackIKRelMimicEnvCfg(FrankaCubeStackEnvCfg, MimicEnvCfg):
                 num_fixed_steps=0,
                 # If True, apply action noise during the interpolation phase and execution
                 apply_noise_during_interpolation=False,
-<<<<<<< HEAD
-=======
                 next_subtask_description="Grasp green cube",
->>>>>>> upstream/main
             )
         )
         subtask_configs.append(
@@ -114,10 +105,7 @@ class FrankaCubeStackIKRelMimicEnvCfg(FrankaCubeStackEnvCfg, MimicEnvCfg):
                 num_fixed_steps=0,
                 # If True, apply action noise during the interpolation phase and execution
                 apply_noise_during_interpolation=False,
-<<<<<<< HEAD
-=======
                 next_subtask_description="Stack green cube on top of red cube",
->>>>>>> upstream/main
             )
         )
         subtask_configs.append(

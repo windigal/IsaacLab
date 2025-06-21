@@ -24,11 +24,6 @@ optional arguments:
 
 """Launch Isaac Sim Simulator first."""
 
-<<<<<<< HEAD
-import argparse
-import os
-
-=======
 # Standard library imports
 import argparse
 import contextlib
@@ -41,7 +36,6 @@ import time
 import torch
 
 # Isaac Lab AppLauncher
->>>>>>> upstream/main
 from isaaclab.app import AppLauncher
 
 # add argparse arguments
@@ -61,8 +55,6 @@ parser.add_argument(
     default=10,
     help="Number of continuous steps with task success for concluding a demo as successful. Default is 10.",
 )
-<<<<<<< HEAD
-=======
 parser.add_argument(
     "--enable_pinocchio",
     action="store_true",
@@ -70,16 +62,11 @@ parser.add_argument(
     help="Enable Pinocchio.",
 )
 
->>>>>>> upstream/main
 # append AppLauncher cli args
 AppLauncher.add_app_launcher_args(parser)
 # parse the arguments
 args_cli = parser.parse_args()
 
-<<<<<<< HEAD
-if args_cli.teleop_device.lower() == "handtracking":
-    vars(args_cli)["experience"] = f'{os.environ["ISAACLAB_PATH"]}/apps/isaaclab.python.xr.openxr.kit'
-=======
 app_launcher_args = vars(args_cli)
 
 if args_cli.enable_pinocchio:
@@ -88,27 +75,11 @@ if args_cli.enable_pinocchio:
     import pinocchio  # noqa: F401
 if "handtracking" in args_cli.teleop_device.lower():
     app_launcher_args["xr"] = True
->>>>>>> upstream/main
 
 # launch the simulator
 app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
-<<<<<<< HEAD
-"""Rest everything follows."""
-
-import contextlib
-import gymnasium as gym
-import time
-import torch
-
-import omni.log
-
-from isaaclab.devices import Se3HandTracking, Se3Keyboard, Se3SpaceMouse
-from isaaclab.envs import ViewerCfg
-from isaaclab.envs.mdp.recorders.recorders_cfg import ActionStateRecorderManagerCfg
-from isaaclab.envs.ui import ViewportCameraController
-=======
 if "handtracking" in args_cli.teleop_device.lower():
     from isaacsim.xr.openxr import OpenXRSpec
 
@@ -130,7 +101,6 @@ from isaaclab.devices.openxr.retargeters.manipulator import GripperRetargeter, S
 from isaaclab.envs.mdp.recorders.recorders_cfg import ActionStateRecorderManagerCfg
 from isaaclab.envs.ui import EmptyWindow
 from isaaclab.managers import DatasetExportMode
->>>>>>> upstream/main
 
 import isaaclab_tasks  # noqa: F401
 from isaaclab_tasks.utils.parse_cfg import parse_env_cfg
@@ -139,35 +109,23 @@ from isaaclab_tasks.utils.parse_cfg import parse_env_cfg
 class RateLimiter:
     """Convenience class for enforcing rates in loops."""
 
-<<<<<<< HEAD
-    def __init__(self, hz):
-        """
-        Args:
-            hz (int): frequency to enforce
-=======
     def __init__(self, hz: int):
         """Initialize a RateLimiter with specified frequency.
 
         Args:
             hz: Frequency to enforce in Hertz.
->>>>>>> upstream/main
         """
         self.hz = hz
         self.last_time = time.time()
         self.sleep_duration = 1.0 / hz
         self.render_period = min(0.033, self.sleep_duration)
 
-<<<<<<< HEAD
-    def sleep(self, env):
-        """Attempt to sleep at the specified rate in hz."""
-=======
     def sleep(self, env: gym.Env):
         """Attempt to sleep at the specified rate in hz.
 
         Args:
             env: Environment to render during sleep periods.
         """
->>>>>>> upstream/main
         next_wakeup_time = self.last_time + self.sleep_duration
         while time.time() < next_wakeup_time:
             time.sleep(self.render_period)
@@ -181,18 +139,6 @@ class RateLimiter:
                 self.last_time += self.sleep_duration
 
 
-<<<<<<< HEAD
-def pre_process_actions(delta_pose: torch.Tensor, gripper_command: bool) -> torch.Tensor:
-    """Pre-process actions for the environment."""
-    # compute actions based on environment
-    if "Reach" in args_cli.task:
-        # note: reach is the only one that uses a different action space
-        # compute actions
-        return delta_pose
-    else:
-        # resolve gripper command
-        gripper_vel = torch.zeros((delta_pose.shape[0], 1), dtype=torch.float, device=delta_pose.device)
-=======
 def pre_process_actions(
     teleop_data: tuple[np.ndarray, bool] | list[tuple[np.ndarray, np.ndarray, np.ndarray]], num_envs: int, device: str
 ) -> torch.Tensor:
@@ -234,7 +180,6 @@ def pre_process_actions(
         # convert to torch
         delta_pose = torch.tensor(delta_pose, dtype=torch.float, device=device).repeat(num_envs, 1)
         gripper_vel = torch.zeros((delta_pose.shape[0], 1), dtype=torch.float, device=device)
->>>>>>> upstream/main
         gripper_vel[:] = -1 if gripper_command else 1
         # compute actions
         return torch.concat([delta_pose, gripper_vel], dim=1)
@@ -244,11 +189,7 @@ def main():
     """Collect demonstrations from the environment using teleop interfaces."""
 
     # if handtracking is selected, rate limiting is achieved via OpenXR
-<<<<<<< HEAD
-    if args_cli.teleop_device.lower() == "handtracking":
-=======
     if "handtracking" in args_cli.teleop_device.lower():
->>>>>>> upstream/main
         rate_limiter = None
     else:
         rate_limiter = RateLimiter(args_cli.step_hz)
@@ -285,40 +226,11 @@ def main():
     env_cfg.recorders: ActionStateRecorderManagerCfg = ActionStateRecorderManagerCfg()
     env_cfg.recorders.dataset_export_dir_path = output_dir
     env_cfg.recorders.dataset_filename = output_file_name
-<<<<<<< HEAD
-=======
     env_cfg.recorders.dataset_export_mode = DatasetExportMode.EXPORT_SUCCEEDED_ONLY
->>>>>>> upstream/main
 
     # create environment
     env = gym.make(args_cli.task, cfg=env_cfg).unwrapped
 
-<<<<<<< HEAD
-    # add teleoperation key for reset current recording instance
-    should_reset_recording_instance = False
-
-    def reset_recording_instance():
-        nonlocal should_reset_recording_instance
-        should_reset_recording_instance = True
-
-    # create controller
-    if args_cli.teleop_device.lower() == "keyboard":
-        teleop_interface = Se3Keyboard(pos_sensitivity=0.2, rot_sensitivity=0.5)
-    elif args_cli.teleop_device.lower() == "spacemouse":
-        teleop_interface = Se3SpaceMouse(pos_sensitivity=0.2, rot_sensitivity=0.5)
-    elif args_cli.teleop_device.lower() == "handtracking":
-        from isaacsim.xr.openxr import OpenXRSpec
-
-        teleop_interface = Se3HandTracking(OpenXRSpec.XrHandEXT.XR_HAND_RIGHT_EXT, False, True)
-        teleop_interface.add_callback("RESET", reset_recording_instance)
-        viewer = ViewerCfg(eye=(-0.25, -0.3, 0.5), lookat=(0.6, 0, 0), asset_name="viewer")
-        ViewportCameraController(env, viewer)
-    else:
-        raise ValueError(
-            f"Invalid device interface '{args_cli.teleop_device}'. Supported: 'keyboard', 'spacemouse', 'handtracking'."
-        )
-
-=======
     # Flags for controlling the demonstration recording process
     should_reset_recording_instance = False
     running_recording_instance = True
@@ -434,34 +346,17 @@ def main():
             )
 
     teleop_interface = create_teleop_device(args_cli.teleop_device, env)
->>>>>>> upstream/main
     teleop_interface.add_callback("R", reset_recording_instance)
     print(teleop_interface)
 
     # reset before starting
-<<<<<<< HEAD
-=======
     env.sim.reset()
->>>>>>> upstream/main
     env.reset()
     teleop_interface.reset()
 
     # simulate environment -- run everything in inference mode
     current_recorded_demo_count = 0
     success_step_count = 0
-<<<<<<< HEAD
-    with contextlib.suppress(KeyboardInterrupt) and torch.inference_mode():
-        while True:
-            # get keyboard command
-            delta_pose, gripper_command = teleop_interface.advance()
-            # convert to torch
-            delta_pose = torch.tensor(delta_pose, dtype=torch.float, device=env.device).repeat(env.num_envs, 1)
-            # compute actions based on environment
-            actions = pre_process_actions(delta_pose, gripper_command)
-
-            # perform action on environment
-            env.step(actions)
-=======
 
     label_text = f"Recorded {current_recorded_demo_count} successful demonstrations."
 
@@ -492,7 +387,6 @@ def main():
                         show_subtask_instructions(instruction_display, subtasks, obv, env.cfg)
             else:
                 env.sim.render()
->>>>>>> upstream/main
 
             if success_term is not None:
                 if bool(success_term.func(env, **success_term.params)[0]):
@@ -507,9 +401,6 @@ def main():
                 else:
                     success_step_count = 0
 
-<<<<<<< HEAD
-            if should_reset_recording_instance:
-=======
             # print out the current demo count if it has changed
             if env.recorder_manager.exported_successful_episode_count > current_recorded_demo_count:
                 current_recorded_demo_count = env.recorder_manager.exported_successful_episode_count
@@ -518,20 +409,11 @@ def main():
 
             if should_reset_recording_instance:
                 env.sim.reset()
->>>>>>> upstream/main
                 env.recorder_manager.reset()
                 env.reset()
                 should_reset_recording_instance = False
                 success_step_count = 0
-<<<<<<< HEAD
-
-            # print out the current demo count if it has changed
-            if env.recorder_manager.exported_successful_episode_count > current_recorded_demo_count:
-                current_recorded_demo_count = env.recorder_manager.exported_successful_episode_count
-                print(f"Recorded {current_recorded_demo_count} successful demonstrations.")
-=======
                 instruction_display.show_demo(label_text)
->>>>>>> upstream/main
 
             if args_cli.num_demos > 0 and env.recorder_manager.exported_successful_episode_count >= args_cli.num_demos:
                 print(f"All {args_cli.num_demos} demonstrations recorded. Exiting the app.")

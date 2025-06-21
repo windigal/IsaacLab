@@ -7,18 +7,12 @@
 
 import gymnasium as gym
 
-<<<<<<< HEAD
-from .franka_stack_ik_rel_blueprint_mimic_env_cfg import FrankaCubeStackIKRelBlueprintMimicEnvCfg
-from .franka_stack_ik_rel_mimic_env import FrankaCubeStackIKRelMimicEnv
-from .franka_stack_ik_rel_mimic_env_cfg import FrankaCubeStackIKRelMimicEnvCfg
-=======
 from .franka_stack_ik_abs_mimic_env import FrankaCubeStackIKAbsMimicEnv
 from .franka_stack_ik_abs_mimic_env_cfg import FrankaCubeStackIKAbsMimicEnvCfg
 from .franka_stack_ik_rel_blueprint_mimic_env_cfg import FrankaCubeStackIKRelBlueprintMimicEnvCfg
 from .franka_stack_ik_rel_mimic_env import FrankaCubeStackIKRelMimicEnv
 from .franka_stack_ik_rel_mimic_env_cfg import FrankaCubeStackIKRelMimicEnvCfg
 from .franka_stack_ik_rel_visuomotor_mimic_env_cfg import FrankaCubeStackIKRelVisuomotorMimicEnvCfg
->>>>>>> upstream/main
 
 ##
 # Inverse Kinematics - Relative Pose Control
@@ -41,8 +35,6 @@ gym.register(
     },
     disable_env_checker=True,
 )
-<<<<<<< HEAD
-=======
 
 gym.register(
     id="Isaac-Stack-Cube-Franka-IK-Abs-Mimic-v0",
@@ -61,4 +53,3 @@ gym.register(
     },
     disable_env_checker=True,
 )
->>>>>>> upstream/main

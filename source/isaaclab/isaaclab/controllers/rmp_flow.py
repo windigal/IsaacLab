@@ -8,9 +8,6 @@ from dataclasses import MISSING
 
 import isaacsim.core.utils.prims as prim_utils
 from isaacsim.core.api.simulation_context import SimulationContext
-<<<<<<< HEAD
-from isaacsim.core.prims.articulations import Articulation
-=======
 from isaacsim.core.prims import SingleArticulation
 
 # enable motion generation extensions
@@ -19,7 +16,6 @@ from isaacsim.core.utils.extensions import enable_extension
 enable_extension("isaacsim.robot_motion.lula")
 enable_extension("isaacsim.robot_motion.motion_generation")
 
->>>>>>> upstream/main
 from isaacsim.robot_motion.motion_generation import ArticulationMotionPolicy
 from isaacsim.robot_motion.motion_generation.lula.motion_policies import RmpFlow, RmpFlowSmoothed
 
@@ -97,11 +93,7 @@ class RmpFlowController:
         self.articulation_policies = list()
         for prim_path in self._prim_paths:
             # add robot reference
-<<<<<<< HEAD
-            robot = Articulation(prim_path)
-=======
             robot = SingleArticulation(prim_path)
->>>>>>> upstream/main
             robot.initialize()
             # add controller
             rmpflow = controller_cls(

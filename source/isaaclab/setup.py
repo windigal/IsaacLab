@@ -6,10 +6,7 @@
 """Installation script for the 'isaaclab' python package."""
 
 import os
-<<<<<<< HEAD
-=======
 import platform
->>>>>>> upstream/main
 import toml
 
 from setuptools import setup
@@ -42,10 +39,6 @@ INSTALL_REQUIRES = [
     "pillow==11.0.0",
     # livestream
     "starlette==0.46.0",
-<<<<<<< HEAD
-]
-
-=======
     "flatdict==4.0.1",
 ]
 
@@ -56,7 +49,6 @@ if platform.system() == "Linux":
         "dex-retargeting==0.4.6",  # required by isaaclab.devices.openxr.retargeters.humanoid.fourier.gr1_t2_dex_retargeting_utils
     ]
 
->>>>>>> upstream/main
 PYTORCH_INDEX_URL = ["https://download.pytorch.org/whl/cu118"]
 
 # Installation operation
