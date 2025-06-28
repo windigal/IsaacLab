@@ -24,6 +24,7 @@ Check joint_names: `source/isaaclab/isaaclab/envs/mdp/observations.py:121 line`
 - - `python ./scripts/reinforcement_learning/rsl_rl/train.py --task Isaac-Velocity-Flat-leju-v2 --headless`
 - - `python ./scripts/reinforcement_learning/rsl_rl/train.py --task Isaac-Velocity-Flat-leju-wbc --headless`
 - - `python ./scripts/reinforcement_learning/rsl_rl/train.py --task Isaac-Velocity-Flat-G1-wbc --headless`
+- - `python ./scripts/reinforcement_learning/bmpc/train.py --task Isaac-Velocity-Flat-leju-wbc --headless --num_envs 1`
 - evaluate
 - - `python ./scripts/reinforcement_learning/rsl_rl/play.py --task Isaac-Velocity-Flat-leju-v2 --num_envs 1 --device=cpu`
 - - `python ./scripts/reinforcement_learning/rsl_rl/play.py --task Isaac-Velocity-Flat-leju-wbc --num_envs 1 --device=cpu`

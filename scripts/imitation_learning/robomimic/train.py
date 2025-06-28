@@ -270,7 +270,7 @@ def train(config: Config, device: str, log_dir: str, ckpt_dir: str, video_dir: s
         step_log = TrainUtils.run_epoch(model=model, data_loader=train_loader, epoch=epoch, num_steps=train_num_steps)
         model.on_epoch_end(epoch)
 
-        # setup checkpoint path
+        # setup checkpoint path 
         epoch_ckpt_name = f"model_epoch_{epoch}"
 
         # check for recurring checkpoint saving conditions

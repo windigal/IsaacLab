@@ -35,7 +35,7 @@ def walk_gait_ref(phi, num_envs, action_dim, device, asset, robot_name) -> torch
     ref_dof_pos[:, joint_ids[0]] = get_interpolated_value(phi[:, 0], loop_range, motion_data[id]["dof"][:,2])
     ref_dof_pos[:, joint_ids[2]] = get_interpolated_value(phi[:, 0], loop_range, motion_data[id]["dof"][:,3])
     ref_dof_pos[:, joint_ids[4]] = get_interpolated_value(phi[:, 0], loop_range, motion_data[id]["dof"][:,4])
-    ref_dof_pos[:, joint_ids[1]] = get_interpolated_value(phi[:, 1], loop_range, motion_data[id]["dof"][:,8])
-    ref_dof_pos[:, joint_ids[3]] = get_interpolated_value(phi[:, 1], loop_range, motion_data[id]["dof"][:,9])
-    ref_dof_pos[:, joint_ids[5]] = get_interpolated_value(phi[:, 1], loop_range, motion_data[id]["dof"][:,10])
+    ref_dof_pos[:, joint_ids[1]] = get_interpolated_value(phi[:, 0], loop_range, motion_data[id]["dof"][:,8])
+    ref_dof_pos[:, joint_ids[3]] = get_interpolated_value(phi[:, 0], loop_range, motion_data[id]["dof"][:,9])
+    ref_dof_pos[:, joint_ids[5]] = get_interpolated_value(phi[:, 0], loop_range, motion_data[id]["dof"][:,10])
     return ref_dof_pos

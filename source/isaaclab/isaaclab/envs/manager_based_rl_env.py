@@ -6,6 +6,7 @@
 # needed to import for allowing type-hinting: np.ndarray | None
 from __future__ import annotations
 
+import os
 import gymnasium as gym
 import math
 import numpy as np
@@ -243,7 +244,7 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
         self.obs_buf = self.observation_manager.compute()
         # draw_num = 160
         # if self.episode_length_buf[0] == draw_num:
-        #     self._draw(draw_num, "track_leju_jump_ref")
+        #     self._draw(draw_num, "track_leju_im_walk_ref")
         #     exit()
         # return observations, rewards, resets and extras
         return self.obs_buf, self.reward_buf, self.reset_terminated, self.reset_time_outs, self.extras
@@ -442,6 +443,7 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
         fig.legend(['Actual', 'Reference'], loc='upper right', ncol=2, fontsize=15, frameon=False)
         plt.tight_layout()
         plt.subplots_adjust(top=0.87)
+        os.makedirs("./imgs", exist_ok=True)
         plt.savefig(f"./imgs/{name}.png")
         self.dof_pos_buf = torch.zeros((2001, 6), device=self.device)
         self.ref_dof_pos_buf = torch.zeros((2001, 6), device=self.device)

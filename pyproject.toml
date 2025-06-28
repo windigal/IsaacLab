@@ -102,6 +102,7 @@ reportOptionalOperand = "none"
 reportOptionalCall = "none"
 reportOptionalMemberAccess = "warning" # -> raises 8 errors
 reportPrivateUsage = "warning"
+reportInvalidTypeForm = "none"
 
 
 [tool.codespell]

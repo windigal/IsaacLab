@@ -59,8 +59,8 @@ LejuKuavo42_CFG = ArticulationCfg(
         "neck":
         ImplicitActuatorCfg(
             joint_names_expr=["zhead_1_joint", "zhead_2_joint"],
-            effort_limit=300,
-            velocity_limit=100.0,
+            effort_limit_sim=300,
+            velocity_limit_sim=100.0,
             stiffness={
                 "zhead_1_joint": 150.0,
                 "zhead_2_joint": 150.0,
@@ -76,8 +76,8 @@ LejuKuavo42_CFG = ArticulationCfg(
                 "leg_l1_joint", "leg_l2_joint", "leg_l3_joint", "leg_l4_joint", "leg_r1_joint",
                 "leg_r2_joint", "leg_r3_joint", "leg_r4_joint"
             ],
-            effort_limit=300,
-            velocity_limit=100.0,
+            effort_limit_sim=300,
+            velocity_limit_sim=100.0,
             stiffness={
                 "leg_l1_joint": 200.0,
                 "leg_l2_joint": 200.0,
@@ -102,8 +102,8 @@ LejuKuavo42_CFG = ArticulationCfg(
         "feet":
         ImplicitActuatorCfg(
             joint_names_expr=["leg_l5_joint", "leg_l6_joint", "leg_r5_joint", "leg_r6_joint"],
-            effort_limit=100,
-            velocity_limit=100.0,
+            effort_limit_sim=100,
+            velocity_limit_sim=100.0,
             stiffness={
                 "leg_l5_joint": 20.0,
                 "leg_l6_joint": 20.0,
@@ -120,8 +120,8 @@ LejuKuavo42_CFG = ArticulationCfg(
         "arms":
         ImplicitActuatorCfg(
             joint_names_expr=["zarm_.*"],
-            effort_limit=300,
-            velocity_limit=100.0,
+            effort_limit_sim=300,
+            velocity_limit_sim=100.0,
             stiffness={
                 "zarm_.*": 40.0,
             },
@@ -190,8 +190,8 @@ LejuKuavo42_V1_CFG = ArticulationCfg(
                 "leg_l1_joint", "leg_l2_joint", "leg_l3_joint", "leg_l4_joint", "leg_r1_joint",
                 "leg_r2_joint", "leg_r3_joint", "leg_r4_joint"
             ],
-            effort_limit=80,
-            velocity_limit=100.0,
+            effort_limit_sim=80,
+            velocity_limit_sim=100.0,
             stiffness={
                 "leg_l1_joint": 120.0,
                 "leg_l2_joint": 120.0,
@@ -216,8 +216,8 @@ LejuKuavo42_V1_CFG = ArticulationCfg(
         "feet":
         ImplicitActuatorCfg(
             joint_names_expr=["leg_l5_joint", "leg_l6_joint", "leg_r5_joint", "leg_r6_joint"],
-            effort_limit=60,
-            velocity_limit=100.0,
+            effort_limit_sim=60,
+            velocity_limit_sim=100.0,
             stiffness={
                 "leg_l5_joint": 30.0,
                 "leg_l6_joint": 30.0,
@@ -234,8 +234,8 @@ LejuKuavo42_V1_CFG = ArticulationCfg(
         "arms":
         ImplicitActuatorCfg(
             joint_names_expr=["zarm_.*"],
-            effort_limit=60,
-            velocity_limit=100.0,
+            effort_limit_sim=60,
+            velocity_limit_sim=100.0,
             stiffness={
                 "zarm_.*": 40.0,
             },
@@ -291,8 +291,8 @@ LejuKuavo42_V2_CFG = ArticulationCfg(
                 "leg_l1_joint", "leg_l2_joint", "leg_l3_joint", "leg_l4_joint", "leg_r1_joint",
                 "leg_r2_joint", "leg_r3_joint", "leg_r4_joint"
             ],
-            effort_limit=300,
-            velocity_limit=100.0,
+            effort_limit_sim=300,
+            velocity_limit_sim=100.0,
             stiffness={
                 "leg_l1_joint": 60.0, # 120.0
                 "leg_l2_joint": 60.0,
@@ -317,8 +317,8 @@ LejuKuavo42_V2_CFG = ArticulationCfg(
         "feet":
         ImplicitActuatorCfg(
             joint_names_expr=["leg_l5_joint", "leg_l6_joint", "leg_r5_joint", "leg_r6_joint"],
-            effort_limit=300,
-            velocity_limit=100.0,
+            effort_limit_sim=300,
+            velocity_limit_sim=100.0,
             stiffness={
                 "leg_l5_joint": 15.0, # 30.0
                 "leg_l6_joint": 15.0,

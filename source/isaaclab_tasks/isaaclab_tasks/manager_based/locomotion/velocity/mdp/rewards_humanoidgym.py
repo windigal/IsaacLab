@@ -27,7 +27,7 @@ def get_gait_phase(env: ManagerBasedRLEnv) -> torch.Tensor:
         sin_pos = torch.sin(2 * torch.pi * phase)
         stance_mask = torch.zeros(env.scene.num_envs, 2, device=env.device)
         stance_mask[:, 0] = sin_pos[:, 0] >= 0
-        stance_mask[:, 1] = sin_pos[:, 0] >= 0
+        stance_mask[:, 1] = sin_pos[:, 1] >= 0
     else:
         episode_length_buf = env.episode_length_buf if hasattr(env, "episode_length_buf") else torch.zeros(env.num_envs, device=env.device, dtype=torch.long)
         cycle_steps = env.cycle_steps if hasattr(env, "cycle_steps") else 64
