@@ -200,6 +200,7 @@ class LejuAmpEnv(DirectRLEnv):
          body_linear_velocities,
          body_angular_velocities,
         ) = self._motion_loader.sample(num_samples=num_samples, times=times)
+        import pdb; pdb.set_trace()
         # compute AMP observation
         amp_observation = compute_obs(
             dof_positions[:, self.motion_dof_indexes],
@@ -210,6 +211,7 @@ class LejuAmpEnv(DirectRLEnv):
             body_angular_velocities[:, self.motion_ref_body_index],
             body_positions[:, self.motion_key_body_indexes],
         )
+        print(amp_observation.shape)
         return amp_observation.view(-1, self.amp_observation_size)
 
 

@@ -218,6 +218,7 @@ class MotionLoader:
             body linear velocities (with shape (N, num_bodies, 3)) and body angular velocities (with shape (N, num_bodies, 3)).
         """
         times = self.sample_times(num_samples, duration) if times is None else times
+        print(f"{times.shape=}")
         index_0, index_1, blend = self._compute_frame_blend(times)
         blend = torch.tensor(blend, dtype=torch.float32, device=self.device)
 

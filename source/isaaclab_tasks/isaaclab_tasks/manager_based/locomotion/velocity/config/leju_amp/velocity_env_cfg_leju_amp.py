@@ -154,7 +154,7 @@ class ObservationsCfg:
         actions = ObsTerm(func=mdp.last_action, clip=(-20.0, 20.0))
         velocity_commands = ObsTerm(func=mdp.generated_commands, params={"command_name": "base_velocity"})
         phase = ObsTerm(func=mdp.command_phase)
-        ref_dof_pos = ObsTerm(func=mdp.compute_ref_state_wbc, params={"command_name": "base_velocity"})
+        # ref_dof_pos = ObsTerm(func=mdp.compute_ref_state_wbc, params={"command_name": "base_velocity"})
         base_euler_xyz = ObsTerm(func=mdp.base_euler_xyz)
         frictions = ObsTerm(func=mdp.frictions)
         mass = ObsTerm(func=mdp.mass)
@@ -265,7 +265,8 @@ class CurriculumCfg:
 @configclass
 class AMPCfg:
     amp_observation_space = 77
-    motion_file: str = MISSING
+    motion_file = os.path.join(os.path.join(os.path.dirname(os.path.abspath(__file__)), "motions"), "CMU02.pkl")
+    index = 8
     reference_body = "base_link"
     reset_strategy = "random"  # default, random, random-start
     """Strategy to be followed when resetting each environment (humanoid's pose and joint states).
