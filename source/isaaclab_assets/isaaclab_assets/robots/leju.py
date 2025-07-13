@@ -334,3 +334,117 @@ LejuKuavo42_V2_CFG = ArticulationCfg(
         ),
     },
 )
+
+LejuKuavo42_AMP_CFG = ArticulationCfg(
+    spawn=sim_utils.UsdFileCfg(
+        usd_path="./models/biped_s42_fine/xml/biped_s42_collision/biped_s42_noworld_mass_singlelayer_fixed_head.usd",
+        activate_contact_sensors=True,
+        rigid_props=sim_utils.RigidBodyPropertiesCfg(
+            disable_gravity=False,
+            retain_accelerations=False,
+            linear_damping=0.0,
+            angular_damping=0.0,
+            max_linear_velocity=1000.0,
+            max_angular_velocity=1000.0,
+            max_depenetration_velocity=1.0,
+        ),
+        articulation_props=sim_utils.ArticulationRootPropertiesCfg(
+            enabled_self_collisions=True,
+            solver_position_iteration_count=4,
+            solver_velocity_iteration_count=4),
+    ),
+    init_state=ArticulationCfg.InitialStateCfg(
+        pos=(0.0, 0.0, 0.9),
+        joint_pos={
+            "zarm_l1_joint": 0.0,
+            "zarm_l2_joint": 0.0,
+            "zarm_l3_joint": 0.0,
+            "zarm_l4_joint": 0.0,
+            "zarm_l5_joint": 0.0,
+            "zarm_l6_joint": 0.0,
+            "zarm_l7_joint": 0.0,
+            "zarm_r1_joint": 0.0,
+            "zarm_r2_joint": 0.0,
+            "zarm_r3_joint": 0.0,
+            "zarm_r4_joint": 0.0,
+            "zarm_r5_joint": 0.0,
+            "zarm_r6_joint": 0.0,
+            "zarm_r7_joint": 0.0,
+            "leg_l1_joint": 0.0,
+            "leg_l2_joint": 0.0,
+            "leg_l3_joint": -0.27, 
+            "leg_l4_joint": 0.52, 
+            "leg_l5_joint": -0.3, 
+            "leg_l6_joint": 0.0,
+            "leg_r1_joint": 0.0,
+            "leg_r2_joint": 0.0,
+            "leg_r3_joint": -0.27, 
+            "leg_r4_joint": 0.52, 
+            "leg_r5_joint": -0.3, 
+            "leg_r6_joint": 0.0,
+        },
+        joint_vel={".*": 0.0},
+    ),
+    soft_joint_pos_limit_factor=0.9,
+    actuators={
+        "legs":
+        ImplicitActuatorCfg(
+            joint_names_expr=[
+                "leg_l1_joint", "leg_l2_joint", "leg_l3_joint", "leg_l4_joint", "leg_r1_joint",
+                "leg_r2_joint", "leg_r3_joint", "leg_r4_joint"
+            ],
+            effort_limit_sim=300,
+            velocity_limit_sim=100.0,
+            stiffness={
+                "leg_l1_joint": 60.0, # 120.0
+                "leg_l2_joint": 60.0,
+                "leg_l3_joint": 60.0,
+                "leg_l4_joint": 60.0,
+                "leg_r1_joint": 60.0,
+                "leg_r2_joint": 60.0,
+                "leg_r3_joint": 60.0,
+                "leg_r4_joint": 60.0,
+            },
+            damping={
+                "leg_l1_joint": 34.0, # 10.0
+                "leg_l2_joint": 6.0,
+                "leg_l3_joint": 12.0,
+                "leg_l4_joint": 12.0,
+                "leg_r1_joint": 34.0,
+                "leg_r2_joint": 6.0,
+                "leg_r3_joint": 12.0,
+                "leg_r4_joint": 12.0,
+            },
+        ),
+        "feet":
+        ImplicitActuatorCfg(
+            joint_names_expr=["leg_l5_joint", "leg_l6_joint", "leg_r5_joint", "leg_r6_joint"],
+            effort_limit_sim=300,
+            velocity_limit_sim=100.0,
+            stiffness={
+                "leg_l5_joint": 15.0, # 30.0
+                "leg_l6_joint": 15.0,
+                "leg_r5_joint": 15.0,
+                "leg_r6_joint": 15.0,
+            },
+            damping={
+                "leg_l5_joint": 22.0,
+                "leg_l6_joint": 22.0,
+                "leg_r5_joint": 22.0,
+                "leg_r6_joint": 22.0,
+            },
+        ),
+        "arms":
+        ImplicitActuatorCfg(
+            joint_names_expr=["zarm_.*"],
+            effort_limit_sim=300,
+            velocity_limit_sim=100.0,
+            stiffness={
+                "zarm_.*": 5.0,
+            },
+            damping={
+                "zarm_.*": 3.0,
+            },
+        ),
+    },
+)

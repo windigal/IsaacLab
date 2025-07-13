@@ -33,7 +33,20 @@ Check joint_names: `source/isaaclab/isaaclab/envs/mdp/observations.py:121 line`
 - - `python ./scripts/reinforcement_learning/rsl_rl/play_joystick.py --task Isaac-Velocity-Flat-leju-v2 --num_envs 1 --device=cpu`
 - - `python ./scripts/reinforcement_learning/rsl_rl/play_joystick.py --task Isaac-Velocity-Flat-leju-wbc --num_envs 1 --device=cpu`
 - - `python ./scripts/reinforcement_learning/rsl_rl/play_joystick.py --task Isaac-Velocity-Flat-G1-wbc --num_envs 1 --device=cpu`
-- tensorboard: `tensorboard --logdir=logs\rsl_rl\leju_flat\{timestamp}`
+- tensorboard: `tensorboard --logdir=logs\{experiment}`
+
+- BMPC/TD-MPC2:
+- - `python ./scripts/reinforcement_learning/tdmpc2/train.py --task Isaac-Ant-v0 --headless --num_envs 1`
+- - `python ./scripts/reinforcement_learning/bmpc_vec/train.py --task Isaac-Ant-v0 --headless --num_envs 4`
+- - `python ./scripts/reinforcement_learning/bmpc_vec/train.py --task Isaac-Velocity-Flat-leju-wbc --headless --num_envs 4`
+
+
+- amp:
+- - `python ./scripts/reinforcement_learning/skrl/train.py --task Isaac-Humanoid-AMP-Walk-Direct-v0 --headless --algorithm AMP`
+- - `python ./scripts/reinforcement_learning/skrl/train.py --task Isaac-Leju-AMP-Walk-Direct-v0 --headless --algorithm AMP`
+- - `python ./scripts/reinforcement_learning/skrl/play.py --task Isaac-Leju-AMP-Walk-Direct-v0 --num_envs 1 --algorithm AMP`
+- - `python ./scripts/reinforcement_learning/skrl/train.py --task Isaac-Velocity-Flat-leju-amp --headless --algorithm AMP`
+- - `python ./scripts/reinforcement_learning/skrl/play.py --task Isaac-Velocity-Flat-leju-amp --headless --algorithm AMP --num_envs 1`
 
 # Update Infos
 - 2025.3.7.

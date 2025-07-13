@@ -60,7 +60,7 @@ class BMPCEnvWrapper(gym.Wrapper):
         if isinstance(self.action_space,
                       gym.spaces.Box) and not self.action_space.is_bounded("both"):
             # self.action_space = gym.spaces.Box(low=-1, high=1, shape=self.action_space.shape)
-            self.action_space = gym.spaces.Box(low=-math.inf, high=math.inf, shape=self.action_space.shape)
+            self.action_space = gym.spaces.Box(low=-20, high=20, shape=self.action_space.shape)
 
         # add buffer for logging episodic information
         self._ep_rew_buf = torch.zeros(self.num_envs, device=self.sim_device)

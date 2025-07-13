@@ -31,7 +31,7 @@ class OnlineTrainer(Trainer):
 			if self.cfg.save_video:
 				self.logger.video.init(self.env, enabled=(i==0))
 			while not dones.all():
-				# torch.compiler.cudagraph_mark_step_begin()
+				torch.compiler.cudagraph_mark_step_begin()
 				action, _ = self.agent.act(obs, t0=t==0, eval_mode=True)
 				obs, reward, done, info = self.env.step(action)
 				ep_reward += (reward * ~dones)
@@ -89,12 +89,13 @@ class OnlineTrainer(Trainer):
 
 			# Collect experience
 			if self._step > self.cfg.seed_steps:
-				# torch.compiler.cudagraph_mark_step_begin()
+				torch.compiler.cudagraph_mark_step_begin()
 				action, act_info = self.agent.act(obs, t0=len(self._tds)==1)
 			else:
-				action = torch.rand((self.cfg.num_envs, *self.env.action_space.shape)) * 2 - 1
+				action = torch.rand((self.cfg.num_envs, *self.env.action_space.shape)) * 40 - 20
+				# print(f"inbmpc: {action=}")
 				act_info = None
-			obs, reward, done, info = self.env.step(action)
+			obs, reward, done, info = self.env.step(action) # done是true的时候obs是自动reset的观测
 			# Reset environment
 			if done.any():
 				if eval_next:
@@ -115,13 +116,16 @@ class OnlineTrainer(Trainer):
 						tds = torch.cat(self._tds[i])
 						train_metrics.update(
 							episode_reward=tds['reward'].nansum(0).mean(),
+							episode_length=tds['reward'].shape[0],
 						)
 						train_metrics.update(self.common_metrics())
 						self.logger.log(train_metrics, 'train')
 						self._ep_idx = self.buffer.add(tds)
+						self._tds[i] = [self.to_td(obs[i])]
 
 			for i in range(self.cfg.num_envs):
-				self._tds[i].append(self.to_td(obs[i], action[i], reward[i], 
+				if i not in np.nonzero(done)[0]:
+					self._tds[i].append(self.to_td(obs[i], action[i], reward[i], 
 								   info[i]['terminated'], act_info[i] if act_info is not None else None))
 
 			# Update agent
@@ -138,5 +142,6 @@ class OnlineTrainer(Trainer):
 				train_metrics.update(_train_metrics)
 
 			self._step += self.cfg.num_envs
-
+			if self._step % self.cfg.save_freq == 0: # test
+				self.agent.save(self.cfg.work_dir / "models" / f'{"model" + str(self._step)}.pt')
 		self.logger.finish(self.agent)

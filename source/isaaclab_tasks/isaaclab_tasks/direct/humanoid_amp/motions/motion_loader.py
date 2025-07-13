@@ -271,9 +271,14 @@ if __name__ == "__main__":
     args, _ = parser.parse_known_args()
 
     motion = MotionLoader(args.file, "cpu")
-
+    print("body names: ", motion.body_names)
     print("- number of frames:", motion.num_frames)
     print("- number of DOFs:", motion.num_dofs)
     print("- number of bodies:", motion.num_bodies)
     print("- dof names:", motion._dof_names)
+    print("- body names:", motion._body_names)
+    import sys
+    torch.set_printoptions(threshold=sys.maxsize)
+    with open("./test/motion_body_humanoid.txt", "w") as f:
+        f.write(str(motion.body_positions))
     print(motion.dof_positions.shape)

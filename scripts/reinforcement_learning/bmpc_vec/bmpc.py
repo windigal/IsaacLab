@@ -453,7 +453,7 @@ class BMPC(torch.nn.Module):
 		kwargs = {"pretrain": pretrain}
 		if task is not None:
 			kwargs["task"] = task
-		# torch.compiler.cudagraph_mark_step_begin()
+		torch.compiler.cudagraph_mark_step_begin()
 		return self._update(obs, action, reward, terminated, expert_action_dist, reanalyze_age, **kwargs)
 
 	@torch.no_grad()
@@ -466,7 +466,7 @@ class BMPC(torch.nn.Module):
   
 		# re-plan
 		obs_ = obs[:-1,:self.cfg.reanalyze_batch_size].reshape(self.cfg.horizon*self.cfg.reanalyze_batch_size, *obs.shape[2:])
-		# torch.compiler.cudagraph_mark_step_begin()
+		torch.compiler.cudagraph_mark_step_begin()
 		_, plan_info = self.plan(obs_, self.cfg.horizon*self.cfg.reanalyze_batch_size, \
       		t0=True, task=task, horizon=self.cfg.reanalyze_horizon, update_prev_mean=False, reanalyze=True)
 

@@ -99,7 +99,6 @@ class HumanoidAmpEnv(DirectRLEnv):
         # build AMP observation
         self.amp_observation_buffer[:, 0] = obs.clone()
         self.extras = {"amp_obs": self.amp_observation_buffer.view(-1, self.amp_observation_size)}
-
         return {"policy": obs}
 
     def _get_rewards(self) -> torch.Tensor:

@@ -74,7 +74,7 @@ def train(agent_cfg: dict):
 	env_cfg = load_cfg_from_registry(args_cli.task, "env_cfg_entry_point")
 	
 	env_cfg.seed = agent_cfg.seed
-	env_cfg.scene.num_envs = args_cli.num_envs if args_cli.num_envs is not None else env_cfg.scene.num_envs
+	env_cfg.scene.num_envs = args_cli.num_envs
 	env = gym.make(args_cli.task, cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
 	env = BMPCEnvWrapper(env, agent_cfg)
 	env = TensorWrapper(env)

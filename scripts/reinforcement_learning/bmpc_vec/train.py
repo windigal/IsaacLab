@@ -1,4 +1,4 @@
-# Add by Windigal in 2024.11
+# Add by Windigal in 2025.06
 # SPDX-License-Identifier: BSD-3-Clause
 """Script to train RL agent with BMPC."""
 
@@ -50,9 +50,9 @@ from common.parser import parse_cfg, save_cfg
 from common.seed import set_seed
 from common.buffer import Buffer
 from bmpc import BMPC
+from tdmpc2 import TDMPC2
 import gymnasium
 from envs.wrappers.tensor import TensorWrapper
-from envs.wrappers.vectorized import Vectorized
 from trainer.online_trainer import OnlineTrainer
 from common.logger import Logger, TBLogger
 from isaaclab_tasks.utils.parse_cfg import load_cfg_from_registry
@@ -85,16 +85,16 @@ def train(agent_cfg: dict):
 	    agent_cfg.obs_shape = {agent_cfg.get('obs', 'state'): env.observation_space.shape}
 
 	agent_cfg.action_dim = env.action_space.shape[0]  # type: ignore
-	agent_cfg.episode_length = 300
-	agent_cfg.seed_steps = agent_cfg.num_envs * agent_cfg.episode_length
+	agent_cfg.seed_steps = agent_cfg.num_envs * 300
 	print('pid:', os.getpid(), flush=True)
 	print(colored('Work dir:', 'yellow', attrs=['bold']), agent_cfg.work_dir)
 
 	logger_cls = TBLogger if agent_cfg.use_tensorboard else Logger
+	agent_cls = BMPC if agent_cfg.bmpc else TDMPC2
 	trainer = OnlineTrainer(
 		cfg=agent_cfg,
 		env=env,
-		agent=BMPC(agent_cfg),
+		agent=agent_cls(agent_cfg),
 		buffer=Buffer(agent_cfg),
 		logger=logger_cls(agent_cfg),
 	)
@@ -105,3 +105,4 @@ def train(agent_cfg: dict):
 
 if __name__ == '__main__':
 	train()
+	simulation_app.close()

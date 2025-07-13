@@ -12,6 +12,7 @@ checkpoint: ???
 eval_episodes: 4
 eval_freq: 50000
 
+# BMPC config
 bmpc: true
 ## logging
 use_tensorboard: true
@@ -33,7 +34,7 @@ expl_log_std_max: 1
 imitation_discount: 1
 
 # training
-steps: 10_000_000
+steps: 1_000_000
 batch_size: 256
 steps_per_update: 1
 reward_coef: 0.1
@@ -95,6 +96,7 @@ save_csv: true
 # misc
 save_video: false
 save_agent: true
+save_freq: 10000
 seed: 1
 
 # convenience
@@ -104,7 +106,7 @@ multitask: ???
 tasks: ???
 obs_shape: ???
 action_dim: ???
-episode_length: ???
+episode_length: 2000
 obs_shapes: ???
 action_dims: ???
 episode_lengths: ???
