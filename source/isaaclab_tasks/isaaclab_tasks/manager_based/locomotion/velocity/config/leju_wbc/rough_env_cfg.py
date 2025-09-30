@@ -168,8 +168,7 @@ class LejuWBCRoughEnvCfg(LocomotionVelocityHighFreqRoughEnvCfg):
         # post init of parent
         super().__post_init__()
         # Scene
-        # LejuKuavo42_V2_CFG.spawn.usd_path = "./models/biped_s42_fine/xml/biped_s42_collision/biped_s42_noworld_mass_singlelayer_with_camera.usd"
-        LejuKuavo42_V2_CFG.spawn.usd_path = "/home/yy/Coding/ghw/IsaacLab/models/biped_s42_fine/xml/biped_s42_collision/biped_s42_noworld_mass_singlelayer_with_camera.usd"
+        LejuKuavo42_V2_CFG.spawn.usd_path = "./models/biped_s42_fine/xml/biped_s42_collision/biped_s42_noworld_mass_singlelayer_with_camera.usd"
         self.scene.robot = LejuKuavo42_V2_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         if self.scene.height_scanner:
             self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/base_link"

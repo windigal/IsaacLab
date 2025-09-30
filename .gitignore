@@ -68,3 +68,6 @@ datasets
 
 # test
 **/test/*
+
+# kit
+**/*.kit
