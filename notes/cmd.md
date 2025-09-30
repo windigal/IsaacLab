@@ -42,29 +42,7 @@ Check joint_names: `source/isaaclab/isaaclab/envs/mdp/observations.py:121 line`
 
 
 - amp:
-- - `python ./scripts/reinforcement_learning/skrl/train.py --task Isaac-Humanoid-AMP-Walk-Direct-v0 --headless --algorithm AMP`
 - - `python ./scripts/reinforcement_learning/skrl/train.py --task Isaac-Leju-AMP-Walk-Direct-v0 --headless --algorithm AMP`
 - - `python ./scripts/reinforcement_learning/skrl/play.py --task Isaac-Leju-AMP-Walk-Direct-v0 --num_envs 1 --algorithm AMP`
 - - `python ./scripts/reinforcement_learning/skrl/train.py --task Isaac-Velocity-Flat-leju-amp --headless --algorithm AMP`
-- - `python ./scripts/reinforcement_learning/skrl/play.py --task Isaac-Velocity-Flat-leju-amp --headless --algorithm AMP --num_envs 1`
-
-# Update Infos
-- 2025.3.7.
-    - Fix Leju Kuavo42 V1 error `feet_alternate` reward function left and right feets indexs
-    - Add a punishment for `long_air_time_indices` and `long_contact_time_indices` in `feet_air_time_positive_biped` reward function
-    - Add a reward class `LejuV1Rewards` for Leju Kuavo42 V1
-    - Change `leg_l4_joint` and `leg_r4_joint` upper limit from 150 to 90 degrees
-
-- 2025.3.8.
-    - Decrease the punishment for `long_air_time_indices` and `long_contact_time_indices` in `feet_air_time_positive_biped` reward function
-    - Change `leg_l3_joint` and `leg_r3_joint` upper limit from -60 to 60 degrees
-
-- 2025.3.14.
-    - Add leju-V2 for IsaacSim, which prohibit the move of arm joints.
-    - Merge different versions of Leju cfg into the same `leju.py` file
-
-- 2025.3.21.
-    - Add ref joint pos and the reward.
-    - Remove the feet alternate reward, update the feed air time reward
-    - Change some PPO cfgs
-    - Lightweight the repo for leju training
+- - `python ./scripts/reinforcement_learning/skrl/play.py --task Isaac-Velocity-Flat-leju-amp --algorithm AMP --num_envs 1`

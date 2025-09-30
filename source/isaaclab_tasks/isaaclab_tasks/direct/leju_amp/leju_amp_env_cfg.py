@@ -8,7 +8,7 @@ from __future__ import annotations
 import os
 from dataclasses import MISSING
 
-from isaaclab_assets import HUMANOID_28_CFG, LejuKuavo42_AMP_CFG
+from isaaclab_assets import LejuKuavo42_AMP_CFG
 
 from isaaclab.actuators import ImplicitActuatorCfg
 from isaaclab.assets import ArticulationCfg
@@ -64,16 +64,6 @@ class LejuAmpEnvCfg(DirectRLEnvCfg):
     scene: InteractiveSceneCfg = InteractiveSceneCfg(num_envs=4096, env_spacing=10.0, replicate_physics=True)
 
     # robot
-    # robot: ArticulationCfg = HUMANOID_28_CFG.replace(prim_path="/World/envs/env_.*/Robot").replace(
-    #     actuators={
-    #         "body": ImplicitActuatorCfg(
-    #             joint_names_expr=[".*"],
-    #             velocity_limit=100.0,
-    #             stiffness=None,
-    #             damping=None,
-    #         ),
-    #     },
-    # )
     robot: ArticulationCfg = LejuKuavo42_AMP_CFG.replace(prim_path="/World/envs/env_.*/Robot")
 
 @configclass

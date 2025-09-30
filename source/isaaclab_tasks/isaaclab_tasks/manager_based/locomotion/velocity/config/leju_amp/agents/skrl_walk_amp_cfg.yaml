@@ -7,7 +7,7 @@ models:
   separate: True
   policy:  # see gaussian_model parameters
     class: GaussianMixin
-    clip_actions: True
+    clip_actions: False
     clip_log_std: True
     min_log_std: -5.0
     max_log_std: 2.0
@@ -70,7 +70,8 @@ agent:
   learning_rate: 0.0001
   learning_rate_scheduler: KLAdaptiveLR
   learning_rate_scheduler_kwargs: 
-    kl_threshold: 0.006
+    kl_threshold: 0.01
+    lr_factor: 2.0
   state_preprocessor: RunningStandardScaler
   state_preprocessor_kwargs: null
   value_preprocessor: RunningStandardScaler
@@ -83,12 +84,12 @@ agent:
   ratio_clip: 0.2
   value_clip: 0.2
   clip_predicted_values: True
-  entropy_loss_scale: 1.0e-2
+  entropy_loss_scale: 1.0e-3
   value_loss_scale: 2.5
   discriminator_loss_scale: 5.0
   amp_batch_size: 512
-  task_reward_weight: 0.7
-  style_reward_weight: 0.3
+  task_reward_weight: 0.2
+  style_reward_weight: 0.8
   discriminator_batch_size: 4096
   discriminator_reward_scale: 2.0
   discriminator_logit_regularization_scale: 0.05
@@ -98,7 +99,7 @@ agent:
   time_limit_bootstrap: False
   # logging and checkpoint
   experiment:
-    directory: "leju_amp_walk"
+    directory: "leju_amp_wbc_walk"
     experiment_name: ""
     write_interval: 1000
     checkpoint_interval: 10000

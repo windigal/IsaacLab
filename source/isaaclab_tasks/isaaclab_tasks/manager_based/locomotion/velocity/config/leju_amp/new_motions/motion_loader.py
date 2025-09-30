@@ -5,6 +5,7 @@
 import joblib
 import numpy as np
 import os
+import re
 import torch
 from typing import Optional
 
@@ -14,7 +15,7 @@ class MotionLoader:
     Helper class to load and sample motion data from NumPy-file format.
     """
 
-    def __init__(self, motion_file: str, device: torch.device, index: int) -> None:
+    def __init__(self, motion_file_id: str, device: torch.device, index: str) -> None:
         """Load a motion file and initialize the internal variables.
 
         Args:
@@ -24,9 +25,10 @@ class MotionLoader:
         Raises:
             AssertionError: If the specified motion file doesn't exist.
         """
+        motion_file = os.path.join(os.path.dirname(__file__), "motions", f"CMU{motion_file_id}.pkl")
         assert os.path.isfile(motion_file), f"Invalid file path: {motion_file}"
         data = joblib.load(motion_file)
-        id = list(data.keys())[index]
+        id = f"0-{motion_file_id}_{index}_poses"
         data = data[id]
         self.device = device
         self._dof_names = ['leg_l1_joint', 'leg_l2_joint', 'leg_l3_joint', 'leg_l4_joint', 'leg_l5_joint', 'leg_l6_joint', 
@@ -39,6 +41,7 @@ class MotionLoader:
         self.dof_velocities = torch.tensor(data["dof_velocities"], dtype=torch.float32, device=self.device)[:,:-2]
         self.body_positions = torch.tensor(data["body_positions"], dtype=torch.float32, device=self.device)[:,:-2,:]
         self.body_rotations = torch.tensor(data["body_rotations"], dtype=torch.float32, device=self.device)[:,:-2,:]
+        self.projected_gravity = torch.tensor(data["projected_gravity"], dtype=torch.float32, device=self.device)
         self.body_linear_velocities = torch.tensor(
             data["body_linear_velocities"], dtype=torch.float32, device=self.device
         )[:,:-2,:]
@@ -226,6 +229,7 @@ class MotionLoader:
             self._interpolate(self.dof_velocities, blend=blend, start=index_0, end=index_1),
             self._interpolate(self.body_positions, blend=blend, start=index_0, end=index_1),
             self._slerp(self.body_rotations, blend=blend, start=index_0, end=index_1),
+            self._interpolate(self.projected_gravity, blend=blend, start=index_0, end=index_1),
             self._interpolate(self.body_linear_velocities, blend=blend, start=index_0, end=index_1),
             self._interpolate(self.body_angular_velocities, blend=blend, start=index_0, end=index_1),
         )
@@ -285,6 +289,7 @@ if __name__ == "__main__":
     print("- body names:", motion._body_names)
     print(motion.dof_positions.shape)
     import sys
+
     torch.set_printoptions(threshold=sys.maxsize)
     with open("./test/motion_body_positions.txt", "w") as f:
         f.write(str(motion.body_positions))

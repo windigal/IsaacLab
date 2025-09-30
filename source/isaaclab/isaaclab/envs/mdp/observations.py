@@ -95,6 +95,56 @@ def root_ang_vel_w(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntity
     asset: RigidObject = env.scene[asset_cfg.name]
     return asset.data.root_ang_vel_w
 
+from isaaclab.utils.math import quat_apply
+@torch.jit.script
+def quaternion_to_tangent_and_normal(q: torch.Tensor) -> torch.Tensor:
+    ref_tangent = torch.zeros_like(q[..., :3])
+    ref_normal = torch.zeros_like(q[..., :3])
+    ref_tangent[..., 0] = 1
+    ref_normal[..., -1] = 1
+    tangent = quat_apply(q, ref_tangent)
+    normal = quat_apply(q, ref_normal)
+    return torch.cat([tangent, normal], dim=len(tangent.shape) - 1)
+
+
+@torch.jit.script
+def compute_obs(
+    dof_positions: torch.Tensor,
+    dof_velocities: torch.Tensor,
+    root_positions: torch.Tensor,
+    root_rotations: torch.Tensor,
+    root_linear_velocities: torch.Tensor,
+    root_angular_velocities: torch.Tensor,
+    key_body_positions: torch.Tensor,
+) -> torch.Tensor:
+    obs = torch.cat(
+        (
+            dof_positions,
+            dof_velocities,
+            root_positions[:, 2:3],  # root body height
+            quaternion_to_tangent_and_normal(root_rotations),
+            root_linear_velocities,
+            root_angular_velocities,
+            (key_body_positions - root_positions.unsqueeze(-2)).view(key_body_positions.shape[0], -1),
+        ),
+        dim=-1,
+    )
+    return obs
+def amp_obs(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
+    
+    asset: Articulation = env.scene[asset_cfg.name]
+    lab_dof_index = asset.find_joints(asset.data.joint_names)[0]
+    ref_body_index = asset.data.body_names.index("base_link")
+    key_body_indexes = [asset.data.body_names.index(name) for name in ["zarm_r6_link", "zarm_l6_link", "leg_r6_link", "leg_l6_link"]]
+    return compute_obs(
+            asset.data.joint_pos[:, lab_dof_index],
+            asset.data.joint_vel[:, lab_dof_index],
+            asset.data.body_pos_w[:, ref_body_index],
+            asset.data.body_quat_w[:, ref_body_index],
+            asset.data.body_lin_vel_w[:, ref_body_index],
+            asset.data.body_ang_vel_w[:, ref_body_index],
+            asset.data.body_pos_w[:, key_body_indexes],
+        )
 
 """
 Body state

@@ -27,7 +27,7 @@ class LejuAMPFlatEnvCfg(LejuAMPRoughEnvCfg):
         # self.commands.base_velocity.ranges.gaits = (2.0, 3.0)
         # self.commands.base_velocity.ranges.gaits = (1.0, 2.0)
         # self.commands.base_velocity.ranges.gaits = (0.0, 1.0)
-        # self.commands.base_velocity.ranges.walk_lin_vel_x = (0.5, 0.5)
+        self.commands.base_velocity.ranges.walk_lin_vel_x = (1.0, 3.5)
         # self.commands.base_velocity.ranges.run_lin_vel_x = (1.5, 1.5)
         # self.commands.base_velocity.ranges.lin_vel_y = (0.4, 0.4)
         # self.commands.base_velocity.ranges.ang_vel_z = (0.4, 0.4)

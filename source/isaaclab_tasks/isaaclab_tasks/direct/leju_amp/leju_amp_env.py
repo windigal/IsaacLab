@@ -30,7 +30,6 @@ class LejuAmpEnv(DirectRLEnv):
         dof_upper_limits = self.robot.data.soft_joint_pos_limits[0, :, 1]
         self.action_offset = 0.5 * (dof_upper_limits + dof_lower_limits)
         self.action_scale = dof_upper_limits - dof_lower_limits
-
         # load motion
         self._motion_loader = MotionLoader(motion_file=self.cfg.motion_file, device=self.device, index=self.cfg.index)
 
@@ -40,6 +39,7 @@ class LejuAmpEnv(DirectRLEnv):
         #                                   "zarm_l3_joint", "zarm_l5_joint", "zarm_l6_joint", "zarm_l7_joint",
         #                                   "zarm_r3_joint", "zarm_r5_joint", "zarm_r6_joint", "zarm_r7_joint"]
         self._incompatible_joint_names = []
+        # self._incompatible_joint_names = ["leg_l1_link", "leg_l2_link", "leg_r1_link", "leg_r2_link", "leg_l6_link", "leg_r6_link"]
         key_body_names = ["zarm_r6_link", "zarm_l6_link", "leg_r6_link", "leg_l6_link"]
         joint_names = [name for name in self.robot.data.joint_names if name not in self._incompatible_joint_names]
         self.lab_dof_index = self.robot.find_joints(joint_names)[0]
@@ -57,6 +57,8 @@ class LejuAmpEnv(DirectRLEnv):
         self.amp_observation_buffer = torch.zeros(
             (self.num_envs, self.cfg.num_amp_observations, self.cfg.amp_observation_space), device=self.device
         )
+
+        self.line_velocity = []
 
     def _setup_scene(self):
         self.robot = Articulation(self.cfg.robot)
@@ -101,7 +103,8 @@ class LejuAmpEnv(DirectRLEnv):
             self.robot.data.body_ang_vel_w[:, self.ref_body_index],
             self.robot.data.body_pos_w[:, self.key_body_indexes],
         )
-
+        # print("velocity: ", self.robot.data.root_lin_vel_w)
+        # self.line_velocity.append(self.robot.data.root_lin_vel_w[0].cpu().numpy())
         # update AMP observation history
         for i in reversed(range(self.cfg.num_amp_observations - 1)):
             self.amp_observation_buffer[:, i + 1] = self.amp_observation_buffer[:, i]
@@ -122,6 +125,7 @@ class LejuAmpEnv(DirectRLEnv):
         return died, time_out
 
     def _reset_idx(self, env_ids: torch.Tensor | None):
+        # if len(self.line_velocity) >= 500: draw(self.line_velocity)
         if env_ids is None or len(env_ids) == self.num_envs:
             env_ids = self.robot._ALL_INDICES
         self.robot.reset(env_ids)
@@ -138,8 +142,6 @@ class LejuAmpEnv(DirectRLEnv):
         self.robot.write_root_link_pose_to_sim(root_state[:, :7], env_ids)
         self.robot.write_root_com_velocity_to_sim(root_state[:, 7:], env_ids)
         self.robot.write_joint_state_to_sim(joint_pos, joint_vel, None, env_ids)
-
-    # def _index_match(self, )
 
     # reset strategies
 
@@ -200,7 +202,7 @@ class LejuAmpEnv(DirectRLEnv):
          body_linear_velocities,
          body_angular_velocities,
         ) = self._motion_loader.sample(num_samples=num_samples, times=times)
-        import pdb; pdb.set_trace()
+
         # compute AMP observation
         amp_observation = compute_obs(
             dof_positions[:, self.motion_dof_indexes],
@@ -211,7 +213,7 @@ class LejuAmpEnv(DirectRLEnv):
             body_angular_velocities[:, self.motion_ref_body_index],
             body_positions[:, self.motion_key_body_indexes],
         )
-        print(amp_observation.shape)
+
         return amp_observation.view(-1, self.amp_observation_size)
 
 
@@ -249,3 +251,18 @@ def compute_obs(
         dim=-1,
     )
     return obs
+
+def draw(line_velocity):
+    import matplotlib.pyplot as plt
+    line_velocity = np.array(line_velocity)
+    plt.figure()
+    plt.plot(line_velocity[:,0], label='x')
+    # plt.plot(line_velocity[:,1], label='y')
+    # plt.plot(line_velocity[:,2], label='z')
+    plt.xlabel('Step')
+    plt.ylabel('Velocity')
+    plt.title('Root Linear Velocity over Time')
+    plt.legend()
+    plt.savefig('/home/yy/Coding/ghw/IsaacLab/imgs/root_linear_velocity.png')
+    print("Saved root linear velocity plot")
+    quit()

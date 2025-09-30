@@ -103,7 +103,7 @@ reportOptionalCall = "none"
 reportOptionalMemberAccess = "warning" # -> raises 8 errors
 reportPrivateUsage = "warning"
 reportInvalidTypeForm = "none"
-
+reportGeneralTypeIssues = "none"
 
 [tool.codespell]
 skip = '*.usd,*.svg,*.png,_isaac_sim*,*.bib,*.css,*/_build'
