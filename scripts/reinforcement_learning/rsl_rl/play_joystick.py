@@ -73,7 +73,7 @@ def main():
     agent_cfg: RslRlOnPolicyRunnerCfg = cli_args.parse_rsl_rl_cfg(args_cli.task, args_cli)
 
     # specify directory for logging experiments
-    log_root_path = os.path.join("logs", "rsl_rl", agent_cfg.experiment_name)
+    log_root_path = os.path.join("logs", "rsl_rl", args_cli.task)
     log_root_path = os.path.abspath(log_root_path)
     print(f"[INFO] Loading experiment from directory: {log_root_path}")
     if args_cli.use_pretrained_checkpoint:
@@ -126,7 +126,6 @@ def main():
     # export_policy_as_onnx(
     #     ppo_runner.alg.policy, normalizer=ppo_runner.obs_normalizer, path=export_model_dir, filename="policy.onnx"
     # )
-    print(args_cli.task)
     if "wbc" in args_cli.task:
         joystick = JoystickWBCCommand()
     else:
@@ -136,7 +135,7 @@ def main():
     # reset environment
     env.env.env.command_manager.change_command("base_velocity", joystick.get_cmd().to(env.device))
     obs, _ = env.get_observations()
-    
+
     timestep = 0
     # simulate environment
     while simulation_app.is_running():

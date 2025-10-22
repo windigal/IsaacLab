@@ -1,25 +1,30 @@
 import math
-
 import isaaclab.sim as sim_utils
 import isaaclab.terrains as terrain_gen
-from isaaclab.assets import ArticulationCfg, AssetBaseCfg
+from isaaclab.assets import ArticulationCfg, AssetBaseCfg, RigidObjectCfg
 from isaaclab.envs import ManagerBasedRLEnvCfg
-from isaaclab.managers import CurriculumTermCfg as CurrTerm
-from isaaclab.managers import EventTermCfg as EventTerm
-from isaaclab.managers import ObservationGroupCfg as ObsGroup
-from isaaclab.managers import ObservationTermCfg as ObsTerm
-from isaaclab.managers import RewardTermCfg as RewTerm
-from isaaclab.managers import SceneEntityCfg
-from isaaclab.managers import TerminationTermCfg as DoneTerm
+from isaaclab.managers import (
+    ObservationGroupCfg as ObsGroup,
+    ObservationTermCfg as ObsTerm,
+    RewardTermCfg as RewTerm,
+    SceneEntityCfg,
+    EventTermCfg as EventTerm,
+    TerminationTermCfg as DoneTerm,
+    CurriculumTermCfg as CurrTerm,
+)
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns
+from isaaclab.sim.schemas.schemas_cfg import RigidBodyPropertiesCfg
+from isaaclab.sim.spawners.from_files.from_files_cfg import UsdFileCfg
 from isaaclab.terrains import TerrainImporterCfg
 from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
 from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
+from isaaclab_tasks.utils.place_box_relative import reset_object_pose_relative_to_asset
 
-from isaaclab_assets.robots.g1_29dof import UNITREE_G1_29DOF_CFG as ROBOT_CFG
-from isaaclab_tasks.G1_tasks.locomotion import mdp
+from isaaclab_assets.robots.g1_29dof import UNITREE_G1_29DOF_LOCKED_ARMS_CFG as ROBOT_CFG
+from isaaclab_tasks.G1_tasks.velocity import mdp
+import re
 
 COBBLESTONE_ROAD_CFG = terrain_gen.TerrainGeneratorCfg(
     size=(8.0, 8.0),
@@ -36,10 +41,21 @@ COBBLESTONE_ROAD_CFG = terrain_gen.TerrainGeneratorCfg(
     },
 )
 
+ARM_JOINT_REGEX = [
+    ".*_shoulder_.*_joint",
+    ".*_elbow_joint",
+    ".*_wrist_.*",
+]
+
+ROBOT_CFG.init_state.joint_pos.update({
+    joint: 0
+    for joint in ROBOT_CFG.init_state.joint_pos.keys() if any(
+        re.match(pattern, joint) for pattern in ARM_JOINT_REGEX)
+})
+
 
 @configclass
-class RobotSceneCfg(InteractiveSceneCfg):
-    """Configuration for the terrain scene with a legged robot."""
+class CarrySceneCfg(InteractiveSceneCfg):
 
     # ground terrain
     terrain = TerrainImporterCfg(
@@ -75,9 +91,29 @@ class RobotSceneCfg(InteractiveSceneCfg):
         debug_vis=False,
         mesh_prim_paths=["/World/ground"],
     )
+
+    box = RigidObjectCfg(
+        prim_path="{ENV_REGEX_NS}/Box",
+        init_state=RigidObjectCfg.InitialStateCfg(pos=[0.24, 0.0, 0.95776], rot=[1, 0, 0, 0]),
+        spawn=UsdFileCfg(
+            usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Blocks/basic_block.usd",
+            scale=(0.20 / 0.047, 0.228 / 0.047, 0.20 / 0.047),
+            # scale=(0.20, 0.228, 0.20),
+            rigid_props=RigidBodyPropertiesCfg(
+                solver_position_iteration_count=16,
+                solver_velocity_iteration_count=2,
+                max_depenetration_velocity=5.0,
+            ),
+            semantic_tags=[("class", "carry_box")],
+        ),
+    )
+
+    # box =
+
     contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/.*",
                                       history_length=3,
                                       track_air_time=True)
+
     # lights
     sky_light = AssetBaseCfg(
         prim_path="/World/skyLight",
@@ -90,8 +126,7 @@ class RobotSceneCfg(InteractiveSceneCfg):
 
 
 @configclass
-class EventCfg:
-    """Configuration for events."""
+class CarryEventsCfg:
 
     # startup
     physics_material = EventTerm(
@@ -106,6 +141,18 @@ class EventCfg:
         },
     )
 
+    box_phisics_material = EventTerm(
+        func=mdp.randomize_rigid_body_material,
+        mode="startup",
+        params={
+            "asset_cfg": SceneEntityCfg("box", body_names=".*"),
+            "static_friction_range": (1.0, 1.0),
+            "dynamic_friction_range": (1.0, 1.0),
+            "restitution_range": (0.0, 0.0),
+            "num_buckets": 64,
+        },
+    )
+
     add_base_mass = EventTerm(
         func=mdp.randomize_rigid_body_mass,
         mode="startup",
@@ -113,6 +160,17 @@ class EventCfg:
             "asset_cfg": SceneEntityCfg("robot", body_names="torso_link"),
             "mass_distribution_params": (-1.0, 3.0),
             "operation": "add",
+        },
+    )
+
+    # 随机化箱子质量(推荐在一开始确定)
+    randomize_box_mass = EventTerm(
+        func=mdp.randomize_rigid_body_mass,
+        mode="reset",
+        params={
+            "asset_cfg": SceneEntityCfg("box", body_names=".*"),
+            "mass_distribution_params": (0.0, 5.0),
+            "operation": "abs",
         },
     )
 
@@ -156,6 +214,21 @@ class EventCfg:
         },
     )
 
+    # # 固定箱子位置
+    place_box_relative = EventTerm(
+        func=reset_object_pose_relative_to_asset,
+        mode="reset",
+        params={
+            "asset_cfg_box": SceneEntityCfg("box"),
+            "asset_cfg_robot": SceneEntityCfg("robot"),
+            "offset_xyz": [0.24, 0.0, 0.175],
+            # "offset_xyz": [0.24, 0.0, 0.20],
+            # 建议让箱子跟随机器人的朝向（只跟 yaw）
+            "follow_robot_yaw": True,
+            "extra_yaw_deg": 0.0,
+        },
+    )
+
     # interval
     push_robot = EventTerm(
         func=mdp.push_by_setting_velocity,
@@ -169,8 +242,7 @@ class EventCfg:
 
 
 @configclass
-class CommandsCfg:
-    """Command specifications for the MDP."""
+class CarryCommandsCfg:
 
     base_velocity = mdp.UniformLevelVelocityCommandCfg(
         asset_name="robot",
@@ -178,32 +250,29 @@ class CommandsCfg:
         rel_standing_envs=0.02,
         rel_heading_envs=1.0,
         heading_command=False,
-        debug_vis=True,
-        # ranges=mdp.UniformLevelVelocityCommandCfg.Ranges(lin_vel_x=(-0.1, 0.1),
-        #                                                  lin_vel_y=(-0.1, 0.1),
-        #                                                  ang_vel_z=(-0.1, 0.1)),
-        ranges=mdp.UniformLevelVelocityCommandCfg.Ranges(lin_vel_x=(1.0, 1.0),
-                                                         lin_vel_y=(-0.3, 0.3),
-                                                         ang_vel_z=(-0.2, 0.2)),
-        limit_ranges=mdp.UniformLevelVelocityCommandCfg.Ranges(lin_vel_x=(-0.5, 1.0),
-                                                               lin_vel_y=(-0.3, 0.3),
-                                                               ang_vel_z=(-0.2, 0.2)),
+        debug_vis=False,
+        ranges=mdp.UniformLevelVelocityCommandCfg.Ranges(lin_vel_x=(-0.1, 0.1),
+                                                         lin_vel_y=(-0.1, 0.1),
+                                                         ang_vel_z=(-0.1, 0.1)),
+        limit_ranges=mdp.UniformLevelVelocityCommandCfg.Ranges(lin_vel_x=(-0.6, 1.2),
+                                                               lin_vel_y=(-0.5, 0.5),
+                                                               ang_vel_z=(-0.4, 0.4)),
     )
 
 
 @configclass
-class ActionsCfg:
-    """Action specifications for the MDP."""
-
-    JointPositionAction = mdp.JointPositionActionCfg(asset_name="robot",
-                                                     joint_names=[".*"],
-                                                     scale=0.25,
-                                                     use_default_offset=True,
-                                                     clip={".*": (-1.0, 1.0)})
+class CarryActionsCfg:
+    lower_body_action = mdp.JointPositionActionCfg(
+        asset_name="robot",
+        joint_names=[".*"],
+        scale=0.25,
+        use_default_offset=True,
+        clip={".*": (-1.0, 1.0)},
+    )
 
 
 @configclass
-class ObservationsCfg:
+class CarryObservationsCfg:
     """Observation specifications for the MDP."""
 
     @configclass
@@ -223,8 +292,6 @@ class ObservationsCfg:
                                 scale=0.05,
                                 noise=Unoise(n_min=-1.5, n_max=1.5))
         last_action = ObsTerm(func=mdp.last_action)
-
-        # gait_phase = ObsTerm(func=mdp.gait_phase, params={"period": 0.8})
 
         def __post_init__(self):
             self.history_length = 5
@@ -247,12 +314,6 @@ class ObservationsCfg:
         joint_vel_rel = ObsTerm(func=mdp.joint_vel_rel, scale=0.05)
         last_action = ObsTerm(func=mdp.last_action)
 
-        # gait_phase = ObsTerm(func=mdp.gait_phase, params={"period": 0.8})
-        # height_scanner = ObsTerm(func=mdp.height_scan,
-        #     params={"sensor_cfg": SceneEntityCfg("height_scanner")},
-        #     clip=(-1.0, 5.0),
-        # )
-
         def __post_init__(self):
             self.history_length = 5
 
@@ -261,25 +322,22 @@ class ObservationsCfg:
 
 
 @configclass
-class RewardsCfg:
+class CarryRewardsCfg:
     """Reward terms for the MDP."""
 
     # -- task
-    track_lin_vel_xy = RewTerm(
-        func=mdp.track_lin_vel_xy_yaw_frame_exp,
-        weight=1.0,
-        params={
-            "command_name": "base_velocity",
-            "std": math.sqrt(0.25)
-        },
-    )
+    track_lin_vel_xy = RewTerm(func=mdp.track_lin_vel_xy_yaw_frame_exp,
+                               weight=1.0,
+                               params={
+                                   "command_name": "base_velocity",
+                                   "std": math.sqrt(0.25)
+                               })
     track_ang_vel_z = RewTerm(func=mdp.track_ang_vel_z_exp,
                               weight=0.5,
                               params={
                                   "command_name": "base_velocity",
                                   "std": math.sqrt(0.25)
                               })
-
     alive = RewTerm(func=mdp.is_alive, weight=0.15)
 
     # -- base
@@ -287,25 +345,10 @@ class RewardsCfg:
     base_angular_velocity = RewTerm(func=mdp.ang_vel_xy_l2, weight=-0.05)
     joint_vel = RewTerm(func=mdp.joint_vel_l2, weight=-0.001)
     joint_acc = RewTerm(func=mdp.joint_acc_l2, weight=-2.5e-7)
-    action_rate = RewTerm(func=mdp.action_rate_l2, weight=-0.05)
+    # action_rate = RewTerm(func=mdp.action_rate_l2, weight=-0.05)
+    action_rate = RewTerm(func=mdp.action_rate_l2_clip, weight=-0.05, params={"max": 0.5})
     dof_pos_limits = RewTerm(func=mdp.joint_pos_limits, weight=-5.0)
     energy = RewTerm(func=mdp.energy, weight=-2e-5)
-
-    joint_deviation_arms = RewTerm(
-        func=mdp.joint_deviation_l1,
-        weight=-0.1,
-        params={
-            "asset_cfg":
-            SceneEntityCfg(
-                "robot",
-                joint_names=[
-                    ".*_shoulder_.*_joint",
-                    ".*_elbow_joint",
-                    ".*_wrist_.*",
-                ],
-            )
-        },
-    )
     joint_deviation_waists = RewTerm(
         func=mdp.joint_deviation_l1,
         weight=-1,
@@ -366,55 +409,52 @@ class RewardsCfg:
         weight=-1,
         params={
             "threshold": 1,
-            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["(?!.*ankle.*).*"]),
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["^(?!.*(ankle|elbow|wrist)).*$"]),
         },
     )
 
 
 @configclass
-class TerminationsCfg:
-    """Termination terms for the MDP."""
-
+class CarryTerminationsCfg:
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
-    base_height = DoneTerm(func=mdp.root_height_below_minimum, params={"minimum_height": 0.2})
-    bad_orientation = DoneTerm(func=mdp.bad_orientation, params={"limit_angle": 0.8})
+    base_height = DoneTerm(func=mdp.root_height_below_minimum, params={"minimum_height": 0.4})
+    bad_orientation = DoneTerm(func=mdp.bad_orientation, params={"limit_angle": 0.8})  # 0.8
+    # box_dropped = DoneTerm(func=mdp.root_height_below_minimum,
+    #                        params={
+    #                            "asset_cfg": SceneEntityCfg("box"),
+    #                            "minimum_height": 0.6
+    #                        })
 
 
 @configclass
-class CurriculumCfg:
+class CarryCurriculumCfg:
     """Curriculum terms for the MDP."""
 
     terrain_levels = CurrTerm(func=mdp.terrain_levels_vel)
-    lin_vel_cmd_levels = CurrTerm(mdp.lin_vel_cmd_levels)
+    lin_vel_cmd_levels = CurrTerm(func=mdp.lin_vel_cmd_levels)
 
 
 @configclass
-class RobotEnvCfg(ManagerBasedRLEnvCfg):
-    """Configuration for the locomotion velocity-tracking environment."""
-
+class G1CarryBoxEnvCfg(ManagerBasedRLEnvCfg):
     # Scene settings
-    scene: RobotSceneCfg = RobotSceneCfg(num_envs=4096, env_spacing=2.5)
+    scene: CarrySceneCfg = CarrySceneCfg(num_envs=4096, env_spacing=2.5)
     # Basic settings
-    observations: ObservationsCfg = ObservationsCfg()
-    actions: ActionsCfg = ActionsCfg()
-    commands: CommandsCfg = CommandsCfg()
+    observations: CarryObservationsCfg = CarryObservationsCfg()
+    actions: CarryActionsCfg = CarryActionsCfg()
+    commands: CarryCommandsCfg = CarryCommandsCfg()
     # MDP settings
-    rewards: RewardsCfg = RewardsCfg()
-    terminations: TerminationsCfg = TerminationsCfg()
-    events: EventCfg = EventCfg()
-    curriculum: CurriculumCfg = CurriculumCfg()
+    rewards: CarryRewardsCfg = CarryRewardsCfg()
+    terminations: CarryTerminationsCfg = CarryTerminationsCfg()
+    events: CarryEventsCfg = CarryEventsCfg()
+    curriculum: CarryCurriculumCfg = CarryCurriculumCfg()
 
     def __post_init__(self):
-        """Post initialization."""
-        # general settings
         self.decimation = 4
         self.episode_length_s = 20.0
-        # simulation settings
         self.sim.dt = 0.005
         self.sim.render_interval = self.decimation
         self.sim.physics_material = self.scene.terrain.physics_material
         self.sim.physx.gpu_max_rigid_patch_count = 10 * 2**15
-
         # update sensor update periods
         # we tick all the sensors based on the smallest update period (physics update period)
         self.scene.contact_forces.update_period = self.sim.dt
@@ -431,11 +471,11 @@ class RobotEnvCfg(ManagerBasedRLEnvCfg):
 
 
 @configclass
-class RobotPlayEnvCfg(RobotEnvCfg):
+class G1CarryBoxPlayEnvCfg(G1CarryBoxEnvCfg):
 
     def __post_init__(self):
         super().__post_init__()
-        self.scene.num_envs = 32
+        self.scene.num_envs = 1
         self.scene.terrain.terrain_generator.num_rows = 2
         self.scene.terrain.terrain_generator.num_cols = 10
         self.commands.base_velocity.ranges = self.commands.base_velocity.limit_ranges

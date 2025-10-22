@@ -34,7 +34,6 @@ class JoystickTwistCommand:
     pygame.init()
     try:
       # get joystick
-      print(pygame.joystick.get_count())
       self.joystick = pygame.joystick.Joystick(0)
       self.joystick.init()
       self.joystick_opened = True
@@ -50,15 +49,15 @@ class JoystickTwistCommand:
       # update robot command
       self.x_vel_cmd = self.scale_range(
         -self.joystick.get_axis(1),
-        (-0.5, 1.0)
+        (-0.6, 1.2)
       )
       self.y_vel_cmd = self.scale_range(
         -self.joystick.get_axis(0),
-        (-0.3, 0.3)
+        (-0.5, 0.5)
       )
       self.yaw_vel_cmd = self.scale_range(
         -self.joystick.get_axis(3),
-        (-0.2, 0.2)
+        (-0.4, 0.4)
       )
       # print("[DEBUG] twist cmd =", self.x_vel_cmd, self.y_vel_cmd, self.yaw_vel_cmd)
       pygame.time.delay(100)
@@ -98,7 +97,6 @@ class JoystickWBCCommand:
         pygame.init()
         try:
             # get joystick
-            print(pygame.joystick.get_count())
             self.joystick = pygame.joystick.Joystick(0)
             self.joystick.init()
             self.joystick_opened = True
