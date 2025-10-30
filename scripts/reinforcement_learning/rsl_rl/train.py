@@ -189,7 +189,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg,
     dump_yaml(os.path.join(log_dir, "params", "agent.yaml"), agent_cfg)
     dump_pickle(os.path.join(log_dir, "params", "env.pkl"), env_cfg)
     dump_pickle(os.path.join(log_dir, "params", "agent.pkl"), agent_cfg)
-    if "G1" in args_cli.task:
+    if "G1" in args_cli.task or "Go2" in args_cli.task:
         from isaaclab_tasks.utils.export_deploy_cfg import export_deploy_cfg
         export_deploy_cfg(env.unwrapped, log_dir)
 

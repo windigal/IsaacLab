@@ -403,7 +403,7 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
         self.last_feet_z = 0.0
         self.cycle_time = self.cfg.cycle_time
         if self.cfg.cycle_time is not None:
-            self.cycle_steps = self.cycle_time / self.cfg.sim.dt / self.cfg.decimation
+            self.cycle_steps = self.cycle_time / self.cfg.sim.dt / self.cfg.decimation # type:ignore
         self.feet_height = torch.zeros((self.scene.num_envs, 2), device=self.device)
         self.dof_pos_buf = torch.zeros((2001, 6), device=self.device)
         self.ref_dof_pos_buf = torch.zeros((2001, 6), device=self.device)
