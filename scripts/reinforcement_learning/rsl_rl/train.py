@@ -9,7 +9,7 @@ import argparse
 import sys
 
 from isaaclab.app import AppLauncher
-
+from scripts.tools.terminal_log import Logger
 # local imports
 import cli_args  # isort: skip
 
@@ -97,7 +97,8 @@ from isaaclab.utils.dict import print_dict
 from isaaclab.utils.io import dump_pickle, dump_yaml
 
 from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlVecEnvWrapper
-
+from isaaclab_rl.rsl_rl.CTS.cfg.cts_cfg import CtsRslRlOnPolicyRunnerCfg
+from isaaclab_rl.rsl_rl.CTS.runners import OnPolicyRunnerCTS
 import isaaclab_tasks  # noqa: F401
 from isaaclab_tasks.utils import get_checkpoint_path
 from isaaclab_tasks.utils.hydra import hydra_task_config
@@ -112,7 +113,7 @@ torch.backends.cudnn.benchmark = False
 
 @hydra_task_config(args_cli.task, "rsl_rl_cfg_entry_point")
 def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg,
-         agent_cfg: RslRlOnPolicyRunnerCfg):
+         agent_cfg: RslRlOnPolicyRunnerCfg | CtsRslRlOnPolicyRunnerCfg):
     """Train with RSL-RL agent."""
     # override configurations with non-hydra CLI arguments
     agent_cfg = cli_args.update_rsl_rl_cfg(agent_cfg, args_cli)
@@ -175,7 +176,10 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg,
     env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
 
     # create runner from rsl-rl
-    runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
+    if "CTS" in args_cli.task:
+        runner = OnPolicyRunnerCTS(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
+    else:
+        runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
     # write git state to logs
     runner.add_git_repo_to_log(__file__)
     # load the checkpoint
@@ -192,7 +196,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg,
     if "G1" in args_cli.task or "Go2" in args_cli.task:
         from isaaclab_tasks.utils.export_deploy_cfg import export_deploy_cfg
         export_deploy_cfg(env.unwrapped, log_dir)
-
+    sys.stdout = Logger(os.path.join(log_dir, "train.log"))
     # run training
     runner.learn(num_learning_iterations=agent_cfg.max_iterations, init_at_random_ep_len=True)
 

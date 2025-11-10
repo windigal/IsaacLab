@@ -358,8 +358,9 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
         Args:
             env_ids: List of environment ids which must be reset
         """
-        # update the curriculum for environments that need a reset
-        self.curriculum_manager.compute(env_ids=env_ids)
+        # update the curriculum for environments that need a reset (unless the first reset)
+        if self.extras != {}:
+            self.curriculum_manager.compute(env_ids=env_ids)
         # reset the internal buffers of the scene elements
         self.scene.reset(env_ids)
         # apply events such as randomizations for environments that need a reset

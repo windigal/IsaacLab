@@ -44,6 +44,8 @@ Check joint_names: `source/isaaclab/isaaclab/envs/mdp/observations.py:121 line`
 
 - using `isaaclab.bat`
 - `isaaclab.bat -p ./scripts/reinforcement_learning/rsl_rl/train.py --task Unitree-G1-29dof-Velocity --headless`
+- `isaaclab.bat -p ./scripts/reinforcement_learning/rsl_rl/train.py --task Unitree-Go2-Velocity --headless`
 - `isaaclab.bat -p ./scripts/reinforcement_learning/rsl_rl/play_joystick.py --task Unitree-G1-29dof-Velocity --num_envs 1`
+- `isaaclab.bat -p ./scripts/reinforcement_learning/rsl_rl/play.py --task Unitree-Go2-Velocity --num_envs 128`
 - `cd _isaac_sim && python.bat -m tensorboard.main --logdir`
 - 

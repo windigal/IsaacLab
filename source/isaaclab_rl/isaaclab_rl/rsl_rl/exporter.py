@@ -50,7 +50,11 @@ class _TorchPolicyExporter(torch.nn.Module):
     def __init__(self, policy, normalizer=None):
         super().__init__()
         self.is_recurrent = policy.is_recurrent
+        self.num_actions = policy.num_actions
         # copy policy parameters
+        if hasattr(policy, "proprioceptive_encoder"):
+            self.proprioceptive_encoder = copy.deepcopy(policy.proprioceptive_encoder)
+            self.forward = self.forward_cts
         if hasattr(policy, "actor"):
             self.actor = copy.deepcopy(policy.actor)
             if self.is_recurrent:
@@ -84,6 +88,18 @@ class _TorchPolicyExporter(torch.nn.Module):
 
     def forward(self, x):
         return self.actor(self.normalizer(x))
+    
+    def forward_cts(self, x):
+        x = self.normalizer(x)
+        latent = self.proprioceptive_encoder(x)
+        
+        frames = x.shape[1] // 45
+        terms_shape = [3, 3, 3, self.num_actions, self.num_actions, self.num_actions]
+        single_frame_term = [x[:, (sum(terms_shape[:i+1]) * frames - terms_shape[i]):sum(terms_shape[:i+1]) * frames] 
+                             for i in range(len(terms_shape))]
+        observation = torch.concat(single_frame_term, dim=1)
+        actor_input = torch.cat((observation, latent), dim=-1)
+        return self.actor(actor_input)
 
     @torch.jit.export
     def reset(self):
@@ -108,15 +124,25 @@ class _OnnxPolicyExporter(torch.nn.Module):
         super().__init__()
         self.verbose = verbose
         self.is_recurrent = policy.is_recurrent
+        self.num_actions = policy.num_actions
+        self.input_dim = None
         # copy policy parameters
+        if hasattr(policy, "proprioceptive_encoder"):
+            self.proprioceptive_encoder = copy.deepcopy(policy.proprioceptive_encoder)
+            self.forward = self.forward_cts
+            self.input_dim = self.proprioceptive_encoder[0].in_features
         if hasattr(policy, "actor"):
             self.actor = copy.deepcopy(policy.actor)
             if self.is_recurrent:
                 self.rnn = copy.deepcopy(policy.memory_a.rnn)
+            if self.input_dim is None:
+                 self.input_dim = self.actor[0].in_features
         elif hasattr(policy, "student"):
             self.actor = copy.deepcopy(policy.student)
             if self.is_recurrent:
                 self.rnn = copy.deepcopy(policy.memory_s.rnn)
+            if self.input_dim is None:
+                 self.input_dim = self.actor[0].in_features
         else:
             raise ValueError("Policy does not have an actor/student module.")
         # set up recurrent network
@@ -137,6 +163,18 @@ class _OnnxPolicyExporter(torch.nn.Module):
 
     def forward(self, x):
         return self.actor(self.normalizer(x))
+    
+    def forward_cts(self, x):
+        x = self.normalizer(x)
+        latent = self.proprioceptive_encoder(x)
+        
+        frames = x.shape[1] // 45
+        terms_shape = [3, 3, 3, self.num_actions, self.num_actions, self.num_actions]
+        single_frame_term = [x[:, (sum(terms_shape[:i+1]) * frames - terms_shape[i]):sum(terms_shape[:i+1]) * frames] 
+                             for i in range(len(terms_shape))]
+        observation = torch.concat(single_frame_term, dim=1)
+        actor_input = torch.cat((observation, latent), dim=-1)
+        return self.actor(actor_input)
 
     def export(self, path, filename):
         self.to("cpu")
@@ -157,7 +195,7 @@ class _OnnxPolicyExporter(torch.nn.Module):
                 dynamic_axes={},
             )
         else:
-            obs = torch.zeros(1, self.actor[0].in_features)
+            obs = torch.zeros(1, self.input_dim)
             torch.onnx.export(
                 self,
                 obs,

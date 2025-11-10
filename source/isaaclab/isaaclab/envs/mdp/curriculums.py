@@ -34,3 +34,27 @@ def modify_reward_weight(env: ManagerBasedRLEnv, env_ids: Sequence[int], term_na
         # update term settings
         term_cfg.weight = weight
         env.reward_manager.set_term_cfg(term_name, term_cfg)
+
+
+def gradual_reward_weight_modification(
+    env: ManagerBasedRLEnv, 
+    env_ids: Sequence[int],
+    term_name: str,
+    initial_weight: float,
+    final_weight: float,
+    start_it: int,
+    end_it: int,
+):
+    """Curriculum that gradually modifies a reward weight between an initial and final value over a range of steps."""
+    current_it = env.common_step_counter // 24
+    if current_it < start_it:
+        return
+
+    if current_it >= end_it:
+        new_weight = final_weight
+    else:
+        new_weight = (current_it - start_it) / (end_it - start_it) * (final_weight - initial_weight) + initial_weight
+
+    term_cfg = env.reward_manager.get_term_cfg(term_name)
+    term_cfg.weight = new_weight
+    env.reward_manager.set_term_cfg(term_name, term_cfg)

@@ -68,6 +68,7 @@ datasets
 
 # test
 **/test/*
+**/test.py
 
 # kit
 **/*.kit
