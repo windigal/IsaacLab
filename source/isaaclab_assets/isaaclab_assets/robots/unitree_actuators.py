@@ -3,7 +3,7 @@ from __future__ import annotations
 import torch
 from dataclasses import MISSING
 
-from isaaclab.actuators import IdealPDActuator, IdealPDActuatorCfg
+from isaaclab.actuators import IdealPDActuator, IdealPDActuatorCfg, DelayedPDActuatorCfg
 from isaaclab.utils import configclass
 from isaaclab.utils.types import ArticulationActions
 
@@ -74,7 +74,7 @@ class UnitreeActuator(IdealPDActuator):
 
 
 @configclass
-class UnitreeActuatorCfg(IdealPDActuatorCfg):
+class UnitreeActuatorCfg(DelayedPDActuatorCfg):
     """
     Configuration for Unitree actuators.
     """
@@ -116,6 +116,8 @@ class UnitreeActuatorCfg_Go2HV(UnitreeActuatorCfg):
     X2 = 30
     Y1 = 20.2
     Y2 = 23.4
+    min_delay = 0
+    max_delay = 4
 
 
 @configclass

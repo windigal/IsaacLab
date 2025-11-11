@@ -317,8 +317,8 @@ class OnPolicyRunnerCTS:
         # -- Save model
         saved_dict = {
             "model_state_dict": self.alg.policy.state_dict(),
-            # "optimizer_state_dict": self.alg.optimizer.state_dict(),
-            # "student_optimizer_state_dict": self.alg.student_optimizer.state_dict(),
+            "rl_optimizer": self.alg.rl_optimizer.state_dict(),
+            "student_enc_optimizer": self.alg.student_enc_optimizer.state_dict(),
             "iter": self.current_learning_iteration,
             "infos": infos,
         }
@@ -330,9 +330,9 @@ class OnPolicyRunnerCTS:
     def load(self, path: str, load_optimizer: bool = True):
         loaded_dict = torch.load(path, weights_only=False)
         self.alg.policy.load_state_dict(loaded_dict["model_state_dict"])
-        # if load_optimizer:
-        #     self.alg.optimizer.load_state_dict(loaded_dict["optimizer_state_dict"])
-        #     self.alg.student_optimizer.load_state_dict(loaded_dict["student_optimizer_state_dict"])
+        if load_optimizer:
+            self.alg.rl_optimizer.load_state_dict(loaded_dict["rl_optimizer"])
+            self.alg.student_enc_optimizer.load_state_dict(loaded_dict["student_enc_optimizer"])
         if self.empirical_normalization:
             self.obs_normalizer.load_state_dict(loaded_dict["obs_norm_state_dict"])
             self.privileged_obs_normalizer.load_state_dict(loaded_dict["privileged_obs_norm_state_dict"])

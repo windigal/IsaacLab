@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedRLEnv
     from isaaclab.sensors import ContactSensor
+    from isaaclab.managers import SceneEntityCfg
+    from isaaclab.assets import Articulation
 
 
 def gait_phase(env: ManagerBasedRLEnv, period: float) -> torch.Tensor:

@@ -238,7 +238,9 @@ def feet_regulation(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, target_ba
     foot_clearance = torch.nan_to_num(foot_clearance, posinf=0.0, neginf=0.0)
     
     feet_vel = asset.data.body_lin_vel_w[:, asset_cfg.body_ids, :2]
-    return torch.sum(torch.norm(feet_vel, dim=-1) * torch.exp(- foot_clearance / 0.025 / target_base_height), dim=1)
+    rew = torch.sum(torch.norm(feet_vel, dim=-1) * torch.exp(- foot_clearance / 0.025 / target_base_height), dim=1)
+    rew = rew * (torch.norm(asset.data.root_lin_vel_b[:, :2], dim=-1) > 0.2).float()
+    return rew
 
 """
 Feet Gait rewards.
@@ -297,3 +299,7 @@ def joint_mirror(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, mirror_joint
         )
     reward *= 1 / len(mirror_joints) if len(mirror_joints) > 0 else 0
     return reward
+
+
+def action_smoothness(env: ManagerBasedRLEnv) -> torch.Tensor:
+    return torch.sum(torch.square(env.action_manager.action - 2 * env.action_manager.prev_action + env.action_manager.pp_action), dim=1)

@@ -58,3 +58,5 @@ def gradual_reward_weight_modification(
     term_cfg = env.reward_manager.get_term_cfg(term_name)
     term_cfg.weight = new_weight
     env.reward_manager.set_term_cfg(term_name, term_cfg)
+
+    return new_weight
