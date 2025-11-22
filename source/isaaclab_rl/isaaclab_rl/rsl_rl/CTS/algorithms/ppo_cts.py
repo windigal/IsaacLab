@@ -251,15 +251,18 @@ class PPO_CTS:
         teacher_indices = torch.randperm(teacher_samples_num, requires_grad=False, device=self.device)
         student_indices = teacher_samples_num + torch.randperm(student_samples_num, requires_grad=False, device=self.device)
         
-        obs = self.storage.observations.flatten(0, 1)
-        critic_obs = self.storage.privileged_observations.flatten(0, 1) 
-        actions = self.storage.actions.flatten(0, 1)
-        values = self.storage.values.flatten(0, 1)
-        advantages = self.storage.advantages.flatten(0, 1)
-        returns = self.storage.returns.flatten(0, 1)
-        old_actions_log_prob = self.storage.actions_log_prob.flatten(0, 1)
-        old_mu = self.storage.mu.flatten(0, 1)
-        old_sigma = self.storage.sigma.flatten(0, 1)
+        obs_dims = list(range(2, self.storage.observations.dim()))
+        obs = self.storage.observations.permute(1, 0, *obs_dims).flatten(0, 1)
+        critic_dims = list(range(2, self.storage.privileged_observations.dim()))
+        critic_obs = self.storage.privileged_observations.permute(1, 0, *critic_dims).flatten(0, 1)
+        action_dims = list(range(2, self.storage.actions.dim()))
+        actions = self.storage.actions.permute(1, 0, *action_dims).flatten(0, 1)
+        values = self.storage.values.permute(1, 0, 2).flatten(0, 1)
+        advantages = self.storage.advantages.permute(1, 0, 2).flatten(0, 1)
+        returns = self.storage.returns.permute(1, 0, 2).flatten(0, 1)
+        old_actions_log_prob = self.storage.actions_log_prob.permute(1, 0, 2).flatten(0, 1)
+        old_mu = self.storage.mu.permute(1, 0, *action_dims).flatten(0, 1)
+        old_sigma = self.storage.sigma.permute(1, 0, *action_dims).flatten(0, 1)
 
         def get_teacher_student_samples(data, slice):
             (i1, i2), (j1, j2) = slice

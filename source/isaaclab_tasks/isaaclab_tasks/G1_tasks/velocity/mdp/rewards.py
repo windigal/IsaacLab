@@ -128,15 +128,31 @@ def feet_height_body(
     return reward
 
 
-def foot_clearance_reward(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, target_height: float,
-                          std: float, tanh_mult: float) -> torch.Tensor:
+def foot_clearance(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, target_height: float,
+                   std: float, tanh_mult: float) -> torch.Tensor:
     """Reward the swinging feet for clearing a specified height off the ground"""
     asset: RigidObject = env.scene[asset_cfg.name]
     foot_z_target_error = torch.square(asset.data.body_pos_w[:, asset_cfg.body_ids, 2] -
                                        target_height)
+    # Get the feet clearance
+    foot_positions = asset.data.body_pos_w[:, asset_cfg.body_ids, :]
+    height_scanner: RayCaster = env.scene.sensors["height_scanner"]
+    terrain_mesh_path = height_scanner.cfg.mesh_prim_paths[0]
+    terrain_warp_mesh = height_scanner.meshes[terrain_mesh_path]
+    ray_starts = foot_positions.clone()
+    ray_starts[..., 2] += 1.0
+    ray_directions = torch.tensor([0.0, 0.0, -1.0], device=env.device).expand_as(ray_starts)
+    ray_hits, _, _, _ = raycast_mesh(ray_starts=ray_starts.view(-1, 3), 
+                                     ray_directions=ray_directions.view(-1, 3),
+                                     mesh=terrain_warp_mesh)
+    terrain_heights_under_feet = ray_hits[:, 2].view(foot_positions.shape[0], foot_positions.shape[1])
+    foot_clearance = asset.data.body_pos_w[:, asset_cfg.body_ids, 2] - terrain_heights_under_feet
+
+    foot_z_target_error = torch.square(foot_clearance - target_height)
     foot_velocity_tanh = torch.tanh(
         tanh_mult * torch.norm(asset.data.body_lin_vel_w[:, asset_cfg.body_ids, :2], dim=2))
     reward = foot_z_target_error * foot_velocity_tanh
+
     return torch.exp(-torch.sum(reward, dim=1) / std)
 
 
@@ -238,8 +254,7 @@ def feet_regulation(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, target_ba
     foot_clearance = torch.nan_to_num(foot_clearance, posinf=0.0, neginf=0.0)
     
     feet_vel = asset.data.body_lin_vel_w[:, asset_cfg.body_ids, :2]
-    rew = torch.sum(torch.norm(feet_vel, dim=-1) * torch.exp(- foot_clearance / 0.025 / target_base_height), dim=1)
-    rew = rew * (torch.norm(asset.data.root_lin_vel_b[:, :2], dim=-1) > 0.2).float()
+    rew = torch.sum(torch.norm(feet_vel, dim=-1) * torch.exp(- foot_clearance / 0.03 / target_base_height), dim=1)
     return rew
 
 """
@@ -303,3 +318,17 @@ def joint_mirror(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, mirror_joint
 
 def action_smoothness(env: ManagerBasedRLEnv) -> torch.Tensor:
     return torch.sum(torch.square(env.action_manager.action - 2 * env.action_manager.prev_action + env.action_manager.pp_action), dim=1)
+
+def track_ang_vel_z_exp_limit(
+    env: ManagerBasedRLEnv, std: float, command_name: str, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
+) -> torch.Tensor:
+    """Reward tracking of angular velocity commands (yaw) using exponential kernel. 
+       If a joint breaks through the soft limit, the reward will be canceled """
+    # extract the used quantities (to enable type-hinting)
+    asset: RigidObject = env.scene[asset_cfg.name]
+    joint_asset: Articulation = env.scene[asset_cfg.name]
+    # compute the error
+    ang_vel_error = torch.square(env.command_manager.get_command(command_name)[:, 2] - asset.data.root_ang_vel_b[:, 2])
+    hip_deviation = joint_asset.data.joint_pos[:, asset_cfg.joint_ids] - joint_asset.data.default_joint_pos[:, asset_cfg.joint_ids]
+    in_limit = torch.all(torch.abs(hip_deviation) < 0.2, dim=1)
+    return torch.exp(-ang_vel_error / std**2) * in_limit

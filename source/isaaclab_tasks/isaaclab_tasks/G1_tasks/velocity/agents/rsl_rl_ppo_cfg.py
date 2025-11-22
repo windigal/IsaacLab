@@ -69,6 +69,6 @@ class CTSPPORunnerCfg(CtsRslRlOnPolicyRunnerCfg):
         desired_kl=0.01,
         max_grad_norm=1.0,
         student_lr=1.0e-3,
-        reconstruction_loss_weight=10.0,
+        reconstruction_loss_weight=1.0,
     )
     

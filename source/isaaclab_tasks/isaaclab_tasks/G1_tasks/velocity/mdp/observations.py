@@ -5,9 +5,10 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedRLEnv
-    from isaaclab.sensors import ContactSensor
+    from isaaclab.sensors import ContactSensor, RayCaster
     from isaaclab.managers import SceneEntityCfg
-    from isaaclab.assets import Articulation
+    from isaaclab.assets import RigidObject
+    from isaaclab.utils.warp import raycast_mesh
 
 
 def gait_phase(env: ManagerBasedRLEnv, period: float) -> torch.Tensor:
@@ -56,15 +57,26 @@ def foot_contact_forces(env: ManagerBasedRLEnv, scale: float, sensor_name: str) 
     """
     获取机器人脚部的3D接触力向量（在世界坐标系下）。
     """
-    # -- CORRECTED SENSOR ACCESS --
-    # 通过 env.scene.sensors 字典来安全地访问传感器
     foot_sensor: ContactSensor = env.scene.sensors[sensor_name]
-
-    # 从传感器对象中获取数据
     foot_forces = foot_sensor.data.net_forces_w
-
-    # 将 (num_envs, 4, 3) 的张量平铺成 (num_envs, 12)
     flattened_forces = torch.flatten(foot_forces, start_dim=1)
 
-    # 应用缩放因子
     return flattened_forces * scale
+
+def feet_height(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg):
+    asset: RigidObject = env.scene[asset_cfg.name]
+    # Get the feet clearance
+    foot_positions = asset.data.body_pos_w[:, asset_cfg.body_ids, :]
+    height_scanner: RayCaster = env.scene.sensors["height_scanner"]
+    terrain_mesh_path = height_scanner.cfg.mesh_prim_paths[0]
+    terrain_warp_mesh = height_scanner.meshes[terrain_mesh_path]
+    ray_starts = foot_positions.clone()
+    ray_starts[..., 2] += 1.0
+    ray_directions = torch.tensor([0.0, 0.0, -1.0], device=env.device).expand_as(ray_starts)
+    ray_hits, _, _, _ = raycast_mesh(ray_starts=ray_starts.view(-1, 3), 
+                                     ray_directions=ray_directions.view(-1, 3),
+                                     mesh=terrain_warp_mesh)
+    terrain_heights_under_feet = ray_hits[:, 2].view(foot_positions.shape[0], foot_positions.shape[1])
+    foot_height = asset.data.body_pos_w[:, asset_cfg.body_ids, 2] - terrain_heights_under_feet
+    foot_height = torch.nan_to_num(foot_height, posinf=0.0, neginf=0.0)
+    return foot_height

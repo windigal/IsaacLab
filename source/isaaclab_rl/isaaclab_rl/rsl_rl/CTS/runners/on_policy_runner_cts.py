@@ -151,7 +151,10 @@ class OnPolicyRunnerCTS:
                     
                     env_actions = self._shuffle_or_recover(actions, "recover")
                     next_obs_raw, rewards_raw, dones_raw, infos = self.env.step(env_actions)
-
+                    # 将 |reward|>1 的值与 NaN 替换为 0 TODO
+                    invalid_mask = torch.isnan(rewards_raw) | (torch.abs(rewards_raw) > 1.0)
+                    rewards_raw[invalid_mask] = 0.0
+                    
                     rewards = self._shuffle_or_recover(rewards_raw.to(self.device), "shuffle")
                     dones = self._shuffle_or_recover(dones_raw.to(self.device), "shuffle")
 
@@ -242,7 +245,11 @@ class OnPolicyRunnerCTS:
                 # log to logger and terminal
                 if "/" in key:
                     if self.writer is not None: self.writer.add_scalar(key, value, locs["it"])
-                    ep_string += f"""{f'{key}:':>{pad}} {value:.4f}\n"""
+                    if "Curriculum" in key:
+                        formatted_values = ', '.join(f"{v:.4f}" for v in torch.mean(infotensor, dim=0))
+                        ep_string += f"""{f'{key}:':>{pad}} {formatted_values}\n"""
+                    else:
+                        ep_string += f"""{f'{key}:':>{pad}} {value:.4f}\n"""
                 else:
                     if self.writer is not None: self.writer.add_scalar("Episode/" + key, value, locs["it"])
                     ep_string += f"""{f'Mean episode {key}:':>{pad}} {value:.4f}\n"""

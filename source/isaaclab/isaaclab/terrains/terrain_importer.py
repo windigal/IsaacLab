@@ -90,6 +90,7 @@ class TerrainImporter:
             self.configure_env_origins(terrain_generator.terrain_origins)
             # refer to the flat patches
             self._terrain_flat_patches = terrain_generator.flat_patches
+            self.terrain_proportions = terrain_generator.proportions
         elif self.cfg.terrain_type == "usd":
             # check if config is provided
             if self.cfg.usd_path is None:

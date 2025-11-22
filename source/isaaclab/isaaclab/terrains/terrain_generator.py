@@ -203,7 +203,7 @@ class TerrainGenerator:
         """Add terrains based on randomly sampled difficulty parameter."""
         # normalize the proportions of the sub-terrains
         proportions = np.array([sub_cfg.proportion for sub_cfg in self.cfg.sub_terrains.values()])
-        proportions /= np.sum(proportions)
+        self.proportions /= np.sum(proportions)
         # create a list of all terrain configs
         sub_terrains_cfgs = list(self.cfg.sub_terrains.values())
 
@@ -224,7 +224,7 @@ class TerrainGenerator:
         """Add terrains based on the difficulty parameter."""
         # normalize the proportions of the sub-terrains
         proportions = np.array([sub_cfg.proportion for sub_cfg in self.cfg.sub_terrains.values()])
-        proportions /= np.sum(proportions)
+        self.proportions = proportions / np.sum(proportions)
 
         # find the sub-terrain index for each column
         # we generate the terrains based on their proportion (not randomly sampled)

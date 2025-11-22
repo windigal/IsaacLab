@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import torch
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
@@ -15,14 +16,34 @@ def lin_vel_cmd_levels(
 ) -> torch.Tensor:
     command_term = env.command_manager.get_term("base_velocity")
     ranges = command_term.cfg.ranges
+    flat_ranges = command_term.cfg.flat_ranges
     limit_ranges = command_term.cfg.limit_ranges
+    flat_limit_ranges = command_term.cfg.flat_limit_ranges
+    flat_proportion = command_term.cfg.flat_proportion
 
     reward_term = env.reward_manager.get_term_cfg(reward_term_name)
-    reward = torch.mean(
-        env.reward_manager._episode_sums[reward_term_name][env_ids]) / env.max_episode_length_s
+    env_ids_flat = env_ids[env_ids < env.num_envs * flat_proportion]
+    env_ids_else = env_ids[env_ids >= env.num_envs * flat_proportion]
+    reward_flat = torch.mean(
+        env.reward_manager._episode_sums[reward_term_name][env_ids_flat]) / env.max_episode_length_s
+    reward_else = torch.mean(
+        env.reward_manager._episode_sums[reward_term_name][env_ids_else]) / env.max_episode_length_s
 
     if env.common_step_counter % env.max_episode_length == 0:
-        if reward > reward_term.weight * 0.8:
+        if reward_flat > reward_term.weight * 0.7:
+            delta_command = torch.tensor([-0.1, 0.1], device=env.device)
+            flat_ranges.lin_vel_x = torch.clamp(
+                torch.tensor(flat_ranges.lin_vel_x, device=env.device) + delta_command,
+                flat_limit_ranges.lin_vel_x[0],
+                flat_limit_ranges.lin_vel_x[1],
+            ).tolist()
+            flat_ranges.lin_vel_y = torch.clamp(
+                torch.tensor(flat_ranges.lin_vel_y, device=env.device) + delta_command,
+                flat_limit_ranges.lin_vel_y[0],
+                flat_limit_ranges.lin_vel_y[1],
+            ).tolist()
+
+        if reward_else > reward_term.weight * 0.8:
             delta_command = torch.tensor([-0.1, 0.1], device=env.device)
             ranges.lin_vel_x = torch.clamp(
                 torch.tensor(ranges.lin_vel_x, device=env.device) + delta_command,
@@ -35,7 +56,7 @@ def lin_vel_cmd_levels(
                 limit_ranges.lin_vel_y[1],
             ).tolist()
 
-    return torch.tensor(ranges.lin_vel_x[1], device=env.device)
+    return torch.tensor(flat_ranges.lin_vel_x[1], device=env.device), torch.tensor(ranges.lin_vel_x[1], device=env.device)
 
 
 def ang_vel_cmd_levels(
@@ -45,14 +66,29 @@ def ang_vel_cmd_levels(
 ) -> torch.Tensor:
     command_term = env.command_manager.get_term("base_velocity")
     ranges = command_term.cfg.ranges
+    flat_ranges = command_term.cfg.flat_ranges
     limit_ranges = command_term.cfg.limit_ranges
+    flat_limit_ranges = command_term.cfg.flat_limit_ranges
+    flat_proportion = command_term.cfg.flat_proportion
 
     reward_term = env.reward_manager.get_term_cfg(reward_term_name)
-    reward = torch.mean(
-        env.reward_manager._episode_sums[reward_term_name][env_ids]) / env.max_episode_length_s
+    env_ids_flat = env_ids[env_ids < env.num_envs * flat_proportion]
+    env_ids_else = env_ids[env_ids >= env.num_envs * flat_proportion]
+    reward_flat = torch.mean(
+        env.reward_manager._episode_sums[reward_term_name][env_ids_flat]) / env.max_episode_length_s
+    reward_else = torch.mean(
+        env.reward_manager._episode_sums[reward_term_name][env_ids_else]) / env.max_episode_length_s
 
     if env.common_step_counter % env.max_episode_length == 0:
-        if reward > reward_term.weight * 0.8:
+        if reward_flat > reward_term.weight * 0.7:
+            delta_command = torch.tensor([-0.1, 0.1], device=env.device)
+            flat_ranges.ang_vel_z = torch.clamp(
+                torch.tensor(flat_ranges.ang_vel_z, device=env.device) + delta_command,
+                flat_limit_ranges.ang_vel_z[0],
+                flat_limit_ranges.ang_vel_z[1],
+            ).tolist()
+
+        if reward_else > reward_term.weight * 0.8:
             delta_command = torch.tensor([-0.1, 0.1], device=env.device)
             ranges.ang_vel_z = torch.clamp(
                 torch.tensor(ranges.ang_vel_z, device=env.device) + delta_command,
@@ -60,8 +96,46 @@ def ang_vel_cmd_levels(
                 limit_ranges.ang_vel_z[1],
             ).tolist()
 
-    return torch.tensor(ranges.ang_vel_z[1], device=env.device)
+    return torch.tensor(flat_ranges.ang_vel_z[1], device=env.device), torch.tensor(ranges.ang_vel_z[1], device=env.device)
 
+def heading_cmd_levels(
+    env: ManagerBasedRLEnv,
+    env_ids: Sequence[int],
+    reward_term_name: str = "track_ang_vel_z",
+) -> torch.Tensor:
+    command_term = env.command_manager.get_term("base_velocity")
+    ranges = command_term.cfg.ranges
+    flat_ranges = command_term.cfg.flat_ranges
+    limit_ranges = command_term.cfg.limit_ranges
+    flat_limit_ranges = command_term.cfg.flat_limit_ranges
+    flat_proportion = command_term.cfg.flat_proportion
+
+    reward_term = env.reward_manager.get_term_cfg(reward_term_name)
+    env_ids_flat = env_ids[env_ids < env.num_envs * flat_proportion]
+    env_ids_else = env_ids[env_ids >= env.num_envs * flat_proportion]
+    reward_flat = torch.mean(
+        env.reward_manager._episode_sums[reward_term_name][env_ids_flat]) / env.max_episode_length_s
+    reward_else = torch.mean(
+        env.reward_manager._episode_sums[reward_term_name][env_ids_else]) / env.max_episode_length_s
+
+    if env.common_step_counter % env.max_episode_length == 0:
+        if reward_flat > reward_term.weight * 0.7:
+            delta_command = torch.tensor([-math.pi / 5, math.pi / 5], device=env.device)
+            flat_ranges.heading = torch.clamp(
+                torch.tensor(flat_ranges.heading, device=env.device) + delta_command,
+                flat_limit_ranges.heading[0],
+                flat_limit_ranges.heading[1],
+            ).tolist()
+
+        if reward_else > reward_term.weight * 0.8:
+            delta_command = torch.tensor([-math.pi / 5, math.pi / 5], device=env.device)
+            ranges.ang_vel_z = torch.clamp(
+                torch.tensor(ranges.heading, device=env.device) + delta_command,
+                limit_ranges.heading[0],
+                limit_ranges.heading[1],
+            ).tolist()
+
+    return torch.tensor(flat_ranges.heading[1], device=env.device), torch.tensor(ranges.heading[1], device=env.device)
 
 def box_mass_levels(
         env: ManagerBasedRLEnv,
